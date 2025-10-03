@@ -1,53 +1,166 @@
-import { useEffect } from "react";
-import "@/App.css";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import axios from 'axios';
+import '@/App.css';
+
+// Components
+import Dashboard from './components/Dashboard';
+import SniperControl from './components/SniperControl';
+import PositionsView from './components/PositionsView';
+import ConfigPanel from './components/ConfigPanel';
+import WalletManager from './components/WalletManager';
+import { Toaster } from './components/ui/sonner';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Home = () => {
-  const helloWorldApi = async () => {
-    try {
-      const response = await axios.get(`${API}/`);
-      console.log(response.data.message);
-    } catch (e) {
-      console.error(e, `errored out requesting / api`);
+function App() {
+  const [isConnected, setIsConnected] = useState(false);
+  const [botStatus, setBotStatus] = useState({
+    is_running: false,
+    connected_clients: 0,
+    active_positions: 0,
+    detected_pairs_today: 0,
+    blockchain_connected: false,
+    last_block: null
+  });
+  const [ws, setWs] = useState(null);
+
+  // Initialize WebSocket connection
+  useEffect(() => {
+    const connectWebSocket = () => {
+      const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+      const websocket = new WebSocket(wsUrl);
+
+      websocket.onopen = () => {
+        console.log('WebSocket connected');
+        setIsConnected(true);
+        setWs(websocket);
+      };
+
+      websocket.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        handleWebSocketMessage(message);
+      };
+
+      websocket.onclose = () => {
+        console.log('WebSocket disconnected');
+        setIsConnected(false);
+        setWs(null);
+        // Reconnect after 5 seconds
+        setTimeout(connectWebSocket, 5000);
+      };
+
+      websocket.onerror = (error) => {
+        console.error('WebSocket error:', error);
+      };
+    };
+
+    connectWebSocket();
+    
+    // Cleanup on unmount
+    return () => {
+      if (ws) {
+        ws.close();
+      }
+    };
+  }, []);
+
+  // Fetch bot status periodically
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await axios.get(`${API}/status`);
+        setBotStatus(response.data);
+      } catch (error) {
+        console.error('Failed to fetch bot status:', error);
+      }
+    };
+
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 10000); // Update every 10 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleWebSocketMessage = (message) => {
+    switch (message.type) {
+      case 'connection_established':
+        console.log('WebSocket connection established');
+        break;
+      case 'status_update':
+        setBotStatus(prev => ({ ...prev, is_running: message.data.status === 'started' }));
+        break;
+      case 'new_pair_detected':
+        // Handle new pair detection
+        console.log('New pair detected:', message.data);
+        break;
+      default:
+        console.log('Unknown message type:', message.type);
     }
   };
 
-  useEffect(() => {
-    helloWorldApi();
-  }, []);
-
   return (
-    <div>
-      <header className="App-header">
-        <a
-          className="App-link"
-          href="https://emergent.sh"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <img src="https://avatars.githubusercontent.com/in/1201222?s=120&u=2686cf91179bbafbc7a71bfbc43004cf9ae1acea&v=4" />
-        </a>
-        <p className="mt-5">Building something incredible ~!</p>
-      </header>
-    </div>
-  );
-};
+    <Router>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-gray-900">
+        <div className="container mx-auto px-4 py-6">
+          <header className="mb-8">
+            <div className="flex items-center justify-between bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl px-6 py-4">
+              <div className="flex items-center space-x-4">
+                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
+                  <span className="text-white font-bold text-xl">🎯</span>
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold text-white">PCS Sniper Bot</h1>
+                  <p className="text-gray-400 text-sm">High-Frequency DeFi Trading</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-6">
+                {/* Connection Status */}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    isConnected && botStatus.blockchain_connected 
+                      ? 'bg-green-500 animate-pulse' 
+                      : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-sm text-gray-300">
+                    {isConnected && botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
+                  </span>
+                </div>
+                
+                {/* Bot Status */}
+                <div className="flex items-center space-x-2">
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                    botStatus.is_running 
+                      ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                      : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
+                  }`}>
+                    {botStatus.is_running ? 'RUNNING' : 'STOPPED'}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </header>
 
-function App() {
-  return (
-    <div className="App">
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />}>
-            <Route index element={<Home />} />
-          </Route>
-        </Routes>
-      </BrowserRouter>
-    </div>
+          <Routes>
+            <Route path="/" element={
+              <Dashboard 
+                botStatus={botStatus} 
+                isConnected={isConnected}
+                ws={ws}
+              />
+            } />
+            <Route path="/sniper" element={<SniperControl botStatus={botStatus} />} />
+            <Route path="/positions" element={<PositionsView />} />
+            <Route path="/config" element={<ConfigPanel />} />
+            <Route path="/wallets" element={<WalletManager />} />
+          </Routes>
+        </div>
+        
+        <Toaster position="top-right" />
+      </div>
+    </Router>
   );
 }
 
