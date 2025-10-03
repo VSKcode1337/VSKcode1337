@@ -325,8 +325,8 @@ const WalletManager = () => {
                   <div className="flex items-center gap-2">
                     <code className="text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 select-none">
                       {showPrivateKeys[wallet.id] ? 
-                        wallet.private_key || 'Not shown in API response' : 
-                        '••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+                        `0x••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••${wallet.address?.slice(-6) || 'N/A'}` : 
+                        '0x••••••••••••••••••••••••••••••••••••••••••••••••••••••'
                       }
                     </code>
                     <Button
