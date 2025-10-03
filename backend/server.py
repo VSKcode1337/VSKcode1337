@@ -933,8 +933,8 @@ async def update_position_prices():
                         }
                     )
                     
-                    # Check for auto-close conditions with real-time data
-                    was_closed = await check_auto_close_conditions(position, new_price, unrealized_pnl_percent)
+                    # Check for auto-close conditions with correct price variable
+                    was_closed = await check_auto_close_conditions(position, new_price_usd, unrealized_pnl_percent)
                     
                     # Only add to broadcast if position wasn't closed
                     if not was_closed:
