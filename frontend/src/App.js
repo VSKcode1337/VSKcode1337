@@ -266,11 +266,17 @@ const AppContent = () => {
                         localStorage.setItem('accountMode', 'demo');
                         toast.success('Switched to Demo Account');
                       }}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                      className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                         accountMode === 'demo'
-                          ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
-                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                          ? 'bg-yellow-500 text-red-600 shadow-lg shadow-yellow-500/30'
+                          : 'bg-gray-700 hover:bg-gray-600'
                       }`}
+                      style={accountMode === 'demo' ? {} : {
+                        background: 'linear-gradient(to right, rgb(96, 165, 250), rgb(167, 139, 250))',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}
                     >
                       🎮 Demo
                     </button>
@@ -280,11 +286,17 @@ const AppContent = () => {
                         localStorage.setItem('accountMode', 'real');
                         toast.success('Switched to Real Account');
                       }}
-                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                      className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                         accountMode === 'real'
-                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                          : 'bg-gray-700 hover:bg-gray-600'
                       }`}
+                      style={accountMode === 'real' ? {} : {
+                        background: 'linear-gradient(to right, rgb(96, 165, 250), rgb(167, 139, 250))',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text'
+                      }}
                     >
                       💼 Real
                     </button>
