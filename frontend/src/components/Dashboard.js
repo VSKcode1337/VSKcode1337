@@ -401,7 +401,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Average Hold Time</span>
-                  <span className="text-white font-semibold">{stats.avg_hold_time_minutes.toFixed(1)}m</span>
+                  <span className="text-white font-semibold">{(stats.avg_hold_time_minutes || 0).toFixed(1)}m</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Win Rate</span>
