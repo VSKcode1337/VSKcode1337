@@ -138,8 +138,34 @@ const AppContent = () => {
         setBotStatus(prev => ({ ...prev, is_running: message.data.status === 'started' }));
         break;
       case 'new_pair_detected':
-        // Handle new pair detection
         console.log('New pair detected:', message.data);
+        // Update detected pairs count
+        setBotStatus(prev => ({ 
+          ...prev, 
+          detected_pairs_today: prev.detected_pairs_today + 1 
+        }));
+        break;
+      case 'position_closed':
+        console.log('Position closed:', message.data);
+        // Update active positions count
+        setBotStatus(prev => ({ 
+          ...prev, 
+          active_positions: Math.max(0, prev.active_positions - 1)
+        }));
+        break;
+      case 'positions_bulk_closed':
+        console.log('Bulk positions closed:', message.data);
+        setBotStatus(prev => ({ 
+          ...prev, 
+          active_positions: Math.max(0, prev.active_positions - message.data.closed_count)
+        }));
+        break;
+      case 'demo_position_created':
+        console.log('Demo position created:', message.data);
+        setBotStatus(prev => ({ 
+          ...prev, 
+          active_positions: prev.active_positions + 1
+        }));
         break;
       default:
         console.log('Unknown message type:', message.type);
