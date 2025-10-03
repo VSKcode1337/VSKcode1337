@@ -55,8 +55,8 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         if (message.type === 'new_pair_detected') {
           setDetectedPairs(prev => {
             const newPairs = [message.data, ...prev.slice(0, 19)];
-            // Update live pairs count based on actual feed length
-            setLivePairsCount(prev => Math.max(prev, newPairs.length + 50)); // +50 for base count
+            // Increment live pairs count by 1 for each new pair detected
+            setLivePairsCount(prev => prev + 1);
             return newPairs;
           });
           toast.success(`New pair detected: ${message.data.token_symbol}`, {
