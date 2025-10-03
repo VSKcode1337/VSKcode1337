@@ -416,11 +416,26 @@ async def update_rpc_config(config: RPCConfig):
 @api_router.get("/wallets", response_model=List[WalletResponse])
 async def get_wallets():
     wallets = await db.wallets.find({"is_active": True}).to_list(100)
-    # Return wallets without private keys for security
+    # Process wallets and include necessary fields for frontend
     wallet_responses = []
     for wallet in wallets:
         wallet.pop('_id', None)  # Remove MongoDB ObjectId
-        wallet.pop('private_key', None)  # Remove private key for security
+        
+        # Keep private key indicator but mask actual key for security
+        has_private_key = bool(wallet.get('private_key'))
+        private_key_masked = '0x••••••••••••••••' if has_private_key else None
+        
+        # Remove actual private key for security but indicate presence
+        wallet.pop('private_key', None)
+        wallet['private_key'] = private_key_masked
+        wallet['has_real_trading'] = has_private_key
+        
+        # Ensure all balance fields are included
+        if 'real_balance_bnb' not in wallet:
+            wallet['real_balance_bnb'] = 0.0
+        if 'real_balance_usd' not in wallet:
+            wallet['real_balance_usd'] = 0.0
+            
         wallet_responses.append(WalletResponse(**wallet))
     return wallet_responses
 
