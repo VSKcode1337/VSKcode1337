@@ -154,16 +154,20 @@ const WalletManager = ({ ws }) => {
               <Button 
                 onClick={async () => {
                   try {
-                    // Create demo wallet with fake private key
+                    // Create demo wallet with random private key
+                    const randomHex = Array.from({length: 64}, () => 
+                      Math.floor(Math.random() * 16).toString(16)
+                    ).join('');
                     const demoWallet = {
                       name: `Demo Wallet ${Math.floor(Math.random() * 1000)}`,
-                      private_key: `0x${''.repeat(64).replace(/./g, () => Math.floor(Math.random() * 16).toString(16))}`
+                      private_key: `0x${randomHex}`
                     };
                     await axios.post(`${API}/wallets`, demoWallet);
                     toast.success('Demo wallet created!');
                     await fetchWallets();
                   } catch (error) {
-                    toast.error('Failed to create demo wallet');
+                    console.error('Demo wallet error:', error);
+                    toast.error(error.response?.data?.detail || 'Failed to create demo wallet');
                   }
                 }}
                 variant="outline"
