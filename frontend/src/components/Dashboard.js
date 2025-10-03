@@ -123,7 +123,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     
     window.addEventListener('refreshDashboard', handleRefresh);
     return () => window.removeEventListener('refreshDashboard', handleRefresh);
-  }, []);
+  }, [fetchDashboardData]);
 
   const fetchDashboardData = useCallback(async () => {
     try {
