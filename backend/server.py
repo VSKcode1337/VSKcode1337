@@ -595,13 +595,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
 async def start_pair_monitoring():
     """Start monitoring for new pairs"""
-    logger.info("Starting pair monitoring...")
+    logger.info("Starting pair monitoring (REAL MODE)...")
     
     while bot_state.is_running:
         try:
-            # Simulate pair detection (replace with real WebSocket monitoring)
-            await simulate_pair_detection()
-            await asyncio.sleep(5)  # Check every 5 seconds
+            # Scan for real pairs from PancakeSwap
+            await scan_real_pairs()
+            await asyncio.sleep(10)  # Check every 10 seconds
             
         except Exception as e:
             logger.error(f"Error in pair monitoring: {e}")
