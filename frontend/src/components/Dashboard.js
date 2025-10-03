@@ -240,7 +240,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
               {positions.filter(p => p.status === 'open').length}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {formatCurrency(positions.reduce((sum, p) => sum + (p.status === 'open' ? p.current_value_usd : 0), 0))} value
+              {formatPnL(positions.reduce((sum, p) => sum + (p.status === 'open' ? (p.unrealized_pnl_usd || 0) : 0), 0))} unrealized
             </p>
           </CardContent>
         </Card>
