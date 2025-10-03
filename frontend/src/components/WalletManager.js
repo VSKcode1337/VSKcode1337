@@ -341,10 +341,10 @@ const WalletManager = ({ ws }) => {
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-400">Private Key</Label>
                   <div className="flex items-center gap-1 md:gap-2">
-                    <code className="text-xs md:text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 truncate select-none">
+                    <code className="text-xs md:text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 truncate select-none overflow-hidden">
                       {showPrivateKeys[wallet.id] ? 
-                        `0x••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••${wallet.address?.slice(-6) || 'N/A'}` : 
-                        '0x••••••••••••••••••••••••••••••••••••••••••••••••••••••'
+                        `0x••••${wallet.address?.slice(-4) || ''}` : 
+                        '0x••••••••••••••••'
                       }
                     </code>
                     <Button
