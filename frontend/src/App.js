@@ -166,11 +166,13 @@ const AppContent = () => {
         break;
       case 'position_closed':
         console.log('Position closed:', message.data);
-        // Update active positions count
+        // Update active positions count and refresh dashboard
         setBotStatus(prev => ({ 
           ...prev, 
           active_positions: Math.max(0, prev.active_positions - 1)
         }));
+        // Force dashboard refresh by updating a timestamp
+        setBotStatus(prev => ({ ...prev, last_updated: Date.now() }));
         break;
       case 'positions_bulk_closed':
         console.log('Bulk positions closed:', message.data);
