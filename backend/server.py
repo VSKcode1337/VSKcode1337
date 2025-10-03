@@ -518,12 +518,24 @@ app.include_router(api_router)
 @app.on_event("startup")
 async def startup_event():
     logger.info("PCS Sniper Bot API starting up...")
-    # Initialize default configuration
+    # Initialize optimized high win-rate configuration
     config = await db.trading_config.find_one({"is_active": True})
     if not config:
-        default_config = TradingConfig()
-        await db.trading_config.insert_one(default_config.dict())
-        bot_state.trading_config = default_config
+        # HIGH WIN-RATE RECOMMENDED SETTINGS
+        optimized_config = TradingConfig(
+            trade_amount_usd=75.0,  # Moderate risk per trade
+            max_trade_amount_usd=150.0,  # Cap maximum risk
+            min_liquidity_usd=100000.0,  # Only trade high-liquidity pairs (safer)
+            max_tax_buy_percent=3.0,  # Very low taxes only (3% max)
+            max_tax_sell_percent=3.0,  # Very low taxes only (3% max)
+            take_profit_targets=[3, 5, 8],  # Conservative targets (3x, 5x, 8x)
+            take_profit_percentages=[60.0, 30.0, 10.0],  # Take most profit early
+            stop_loss_percent=25.0,  # Quick stop-loss at 25% down
+            max_position_time_minutes=20,  # Maximum 20 minutes per trade
+            slippage_tolerance_percent=8.0  # Reasonable slippage
+        )
+        await db.trading_config.insert_one(optimized_config.dict())
+        bot_state.trading_config = optimized_config
 
 @app.on_event("shutdown")
 async def shutdown_event():
