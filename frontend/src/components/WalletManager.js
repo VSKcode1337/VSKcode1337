@@ -337,9 +337,9 @@ const WalletManager = () => {
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t border-gray-700">
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
                     onClick={async () => {
                       try {
                         // Add demo funds for testing
@@ -350,8 +350,9 @@ const WalletManager = () => {
                         toast.error('Failed to add demo funds');
                       }
                     }}
+                    data-testid="add-demo-funds-btn"
                   >
-                    Add Demo Funds
+                    💰 Add Demo Funds
                   </Button>
                   
                   <AlertDialog>
