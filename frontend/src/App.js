@@ -56,13 +56,44 @@ const AppContent = () => {
   const [ws, setWs] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Load account mode from localStorage
+  // Load account mode and selected wallet from localStorage
   useEffect(() => {
     const savedMode = localStorage.getItem('accountMode');
     if (savedMode) {
       setAccountMode(savedMode);
     }
+    
+    const savedWalletId = localStorage.getItem('selectedWalletId');
+    if (savedWalletId) {
+      setSelectedWalletId(savedWalletId);
+    }
+    
+    // Fetch available wallets
+    fetchWallets();
   }, []);
+
+  const fetchWallets = async () => {
+    try {
+      const response = await axios.get(`${API}/wallets`);
+      setAvailableWallets(response.data);
+      
+      // Auto-select first wallet if none selected
+      if (!selectedWalletId && response.data.length > 0) {
+        const firstWallet = response.data[0];
+        setSelectedWalletId(firstWallet.id);
+        localStorage.setItem('selectedWalletId', firstWallet.id);
+      }
+    } catch (error) {
+      console.error('Failed to fetch wallets:', error);
+    }
+  };
+
+  const switchWallet = (walletId) => {
+    setSelectedWalletId(walletId);
+    localStorage.setItem('selectedWalletId', walletId);
+    // Force dashboard refresh
+    window.dispatchEvent(new CustomEvent('refreshDashboard'));
+  };
 
   // Initialize WebSocket connection
   useEffect(() => {
