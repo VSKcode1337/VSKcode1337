@@ -482,16 +482,16 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                       <div>
                         <div className="text-white text-sm font-medium">{position.token_symbol}</div>
                         <div className="text-gray-400 text-xs">
-                          {new Date(position.entry_time).toLocaleTimeString('en-GB', { 
+                          👛 {position.wallet_name} • {new Date(position.entry_time).toLocaleTimeString('en-GB', { 
                             timeZone: 'Europe/London',
                             hour12: false,
                             hour: '2-digit',
                             minute: '2-digit'
-                          })} London
+                          })}
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm">{formatPnL(position.unrealized_pnl_usd)}</div>
+                        <div className="text-sm">{formatPnL(position.unrealized_pnl_usd || position.realized_pnl_usd)}</div>
                         <Badge variant={position.status === 'open' ? 'default' : 'secondary'} className="text-xs">
                           {position.status}
                         </Badge>
