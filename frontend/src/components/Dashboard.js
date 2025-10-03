@@ -57,9 +57,28 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         axios.get(`${API}/stats`)
       ]);
       
-      setPositions(positionsRes.data);
+      const allPositions = positionsRes.data;
+      const closedPositions = allPositions.filter(p => p.status === 'closed');
+      
+      // Calculate real stats from actual positions
+      const totalPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
+      const winningTrades = closedPositions.filter(p => (p.realized_pnl_usd || p.unrealized_pnl_usd || 0) > 0).length;
+      const totalTrades = closedPositions.length;
+      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+      
+      // Update stats with calculated values
+      const calculatedStats = {
+        ...statsRes.data,
+        total_pnl_usd: totalPnL,
+        winning_trades: winningTrades,
+        losing_trades: totalTrades - winningTrades,
+        total_trades: totalTrades,
+        win_rate_percent: winRate
+      };
+      
+      setPositions(allPositions);
       setDetectedPairs(pairsRes.data);
-      setStats(statsRes.data);
+      setStats(calculatedStats);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       toast.error('Failed to load dashboard data');
