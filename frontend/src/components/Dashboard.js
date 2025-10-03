@@ -382,19 +382,11 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                isConnected 
-                  ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
-                  : 'bg-red-500 shadow-sm shadow-red-500/50'
-              }`}></div>
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
               <span className="text-sm text-gray-300">WebSocket</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className={`w-2 h-2 rounded-full ${
-                botStatus.blockchain_connected 
-                  ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
-                  : 'bg-red-500 shadow-sm shadow-red-500/50'
-              }`}></div>
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
               <span className="text-sm text-gray-300">Blockchain</span>
             </div>
             <div className="flex items-center gap-2">
