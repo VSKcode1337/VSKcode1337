@@ -1055,7 +1055,261 @@ async def update_position_prices():
             logger.error(f"Error updating REAL prices: {e}")
             await asyncio.sleep(1)
 
-async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
+async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
+    """Execute REAL blockchain transaction on PancakeSwap"""
+    try:
+        # Get trading configuration
+        config = await db.trading_config.find_one({"is_active": True})
+        if not config:
+            logger.warning("No trading config found for real execution")
+            return
+            
+        # Get RPC configuration
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config or not rpc_config.get('bsc_rpc_http'):
+            logger.error("No RPC configuration found - cannot execute real trades!")
+            return
+        
+        # Get active wallet with real private key
+        wallets = await db.wallets.find({"is_active": True, "balance_bnb": {"$gt": 0.01}}).to_list(10)
+        if not wallets:
+            logger.warning("No wallets with sufficient balance for real trading")
+            return
+            
+        # Select wallet for trading
+        import random
+        wallet = random.choice(wallets)
+        private_key = wallet.get('private_key')
+        
+        if not private_key:
+            logger.error(f"No private key for wallet {wallet.get('name')} - cannot execute real trade!")
+            return
+        
+        # Initialize Web3 with your RPC
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        if not w3.is_connected():
+            logger.error("Cannot connect to BSC network!")
+            return
+        
+        # Setup account
+        from eth_account import Account
+        account = Account.from_key(private_key)
+        wallet_address = account.address
+        
+        logger.info(f"🔥 EXECUTING REAL TRADE: {detected_pair.token_symbol} from wallet {wallet_address}")
+        
+        # Get real wallet balance
+        real_balance_wei = w3.eth.get_balance(wallet_address)
+        real_balance_bnb = w3.from_wei(real_balance_wei, 'ether')
+        
+        logger.info(f"💰 Real wallet balance: {real_balance_bnb:.6f} BNB")
+        
+        # Calculate trade amount
+        trade_amount_usd = config.get('trade_amount_usd', 50)
+        bnb_price_usd = 600  # Approximate BNB price
+        trade_amount_bnb = trade_amount_usd / bnb_price_usd
+        
+        # Check sufficient balance (including gas fees)
+        min_balance_needed = trade_amount_bnb + 0.001  # Add gas buffer
+        if real_balance_bnb < min_balance_needed:
+            logger.error(f"Insufficient BNB! Need {min_balance_needed:.6f}, have {real_balance_bnb:.6f}")
+            return
+        
+        # EXECUTE REAL PANCAKESWAP BUY
+        tx_hash = await execute_real_pancakeswap_buy(
+            w3, account, detected_pair.token_address, trade_amount_bnb, config
+        )
+        
+        if tx_hash:
+            # Create REAL position with actual transaction hash
+            real_position = Position(
+                wallet_id=wallet['id'],
+                token_address=detected_pair.token_address,
+                token_symbol=detected_pair.token_symbol,
+                token_name=detected_pair.token_name,
+                pair_address=detected_pair.pair_address,
+                entry_amount_bnb=trade_amount_bnb,
+                entry_amount_usd=trade_amount_usd,
+                entry_price=0.0,  # Will be calculated from actual transaction
+                current_price=0.0,
+                current_value_usd=trade_amount_usd,
+                tokens_held=0.0,  # Will be calculated from transaction receipt
+                entry_time=datetime.now(timezone.utc),
+                status="open",
+                unrealized_pnl_usd=0.0,
+                unrealized_pnl_percent=0.0,
+                entry_tx_hash=tx_hash  # REAL transaction hash!
+            )
+            
+            # Store position
+            await db.positions.insert_one(real_position.dict())
+            
+            # Broadcast real position
+            await bot_state.broadcast_to_clients({
+                "type": "real_position_created",
+                "data": real_position.dict()
+            })
+            
+            logger.info(f"🚀 REAL TRADE EXECUTED: {detected_pair.token_symbol} - TX: {tx_hash}")
+        
+    except Exception as e:
+        logger.error(f"Error executing real trade for {detected_pair.token_symbol}: {e}")
+
+async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, config):
+    """Execute REAL BNB -> Token swap on PancakeSwap"""
+    try:
+        # Setup PancakeSwap Router contract
+        router_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(PANCAKESWAP_ROUTER_V2),
+            abi=PANCAKESWAP_ROUTER_ABI
+        )
+        
+        # Convert amounts
+        bnb_amount_wei = w3.to_wei(bnb_amount, 'ether')
+        
+        # Setup swap path: BNB -> WBNB -> Token
+        path = [
+            Web3.to_checksum_address(WBNB_ADDRESS),
+            Web3.to_checksum_address(token_address)
+        ]
+        
+        # Get expected output amount
+        amounts_out = router_contract.functions.getAmountsOut(bnb_amount_wei, path).call()
+        expected_tokens = amounts_out[-1]
+        
+        # Apply slippage protection
+        slippage_percent = config.get('slippage_tolerance_percent', 12)
+        min_tokens = int(expected_tokens * (100 - slippage_percent) / 100)
+        
+        logger.info(f"💱 REAL SWAP: {bnb_amount} BNB -> Expected: {w3.from_wei(expected_tokens, 'ether')} tokens (min: {w3.from_wei(min_tokens, 'ether')})")
+        
+        # Setup deadline (10 minutes from now)
+        deadline = int(time.time()) + 600
+        
+        # Build transaction
+        transaction = router_contract.functions.swapExactETHForTokens(
+            min_tokens,
+            path,
+            account.address,
+            deadline
+        ).build_transaction({
+            'from': account.address,
+            'value': bnb_amount_wei,
+            'gas': config.get('gas_limit', 300000),
+            'gasPrice': w3.to_wei(config.get('gas_price_gwei', 5), 'gwei'),
+            'nonce': w3.eth.get_transaction_count(account.address),
+            'chainId': 56  # BSC Mainnet
+        })
+        
+        # Sign transaction with real private key
+        signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
+        
+        # SEND REAL TRANSACTION TO BLOCKCHAIN
+        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        tx_hash_hex = tx_hash.hex()
+        
+        logger.info(f"🔥 REAL TRANSACTION SENT: {tx_hash_hex}")
+        logger.info(f"🔗 View on BSCScan: https://bscscan.com/tx/{tx_hash_hex}")
+        
+        return tx_hash_hex
+        
+    except Exception as e:
+        logger.error(f"REAL transaction failed: {e}")
+        return None
+
+async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount, config):
+    """Execute REAL Token -> BNB swap on PancakeSwap"""
+    try:
+        # Setup contracts
+        router_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(PANCAKESWAP_ROUTER_V2),
+            abi=PANCAKESWAP_ROUTER_ABI
+        )
+        
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
+        )
+        
+        # Get token decimals
+        decimals = token_contract.functions.decimals().call()
+        token_amount_wei = int(token_amount * (10 ** decimals))
+        
+        # Check and approve token spending
+        allowance = token_contract.functions.allowance(account.address, PANCAKESWAP_ROUTER_V2).call()
+        
+        if allowance < token_amount_wei:
+            # Approve tokens for router
+            approve_tx = token_contract.functions.approve(
+                PANCAKESWAP_ROUTER_V2,
+                token_amount_wei * 2  # Approve double amount for future trades
+            ).build_transaction({
+                'from': account.address,
+                'gas': 100000,
+                'gasPrice': w3.to_wei(5, 'gwei'),
+                'nonce': w3.eth.get_transaction_count(account.address),
+                'chainId': 56
+            })
+            
+            # Sign and send approval
+            signed_approve = w3.eth.account.sign_transaction(approve_tx, account.key)
+            approve_hash = w3.eth.send_raw_transaction(signed_approve.rawTransaction)
+            
+            logger.info(f"🔓 APPROVAL SENT: {approve_hash.hex()}")
+            
+            # Wait for approval confirmation
+            receipt = w3.eth.wait_for_transaction_receipt(approve_hash, timeout=300)
+            if receipt.status != 1:
+                logger.error("Approval transaction failed!")
+                return None
+        
+        # Setup swap path: Token -> WBNB -> BNB  
+        path = [
+            Web3.to_checksum_address(token_address),
+            Web3.to_checksum_address(WBNB_ADDRESS)
+        ]
+        
+        # Get expected BNB output
+        amounts_out = router_contract.functions.getAmountsOut(token_amount_wei, path).call()
+        expected_bnb = amounts_out[-1]
+        
+        # Apply slippage protection
+        slippage_percent = config.get('slippage_tolerance_percent', 12)
+        min_bnb = int(expected_bnb * (100 - slippage_percent) / 100)
+        
+        logger.info(f"💱 REAL SELL: {token_amount} tokens -> Expected: {w3.from_wei(expected_bnb, 'ether')} BNB")
+        
+        # Setup deadline
+        deadline = int(time.time()) + 600
+        
+        # Build sell transaction
+        transaction = router_contract.functions.swapExactTokensForETH(
+            token_amount_wei,
+            min_bnb,
+            path,
+            account.address,
+            deadline
+        ).build_transaction({
+            'from': account.address,
+            'gas': config.get('gas_limit', 300000),
+            'gasPrice': w3.to_wei(config.get('gas_price_gwei', 5), 'gwei'),
+            'nonce': w3.eth.get_transaction_count(account.address),
+            'chainId': 56
+        })
+        
+        # Sign and send real sell transaction
+        signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
+        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        tx_hash_hex = tx_hash.hex()
+        
+        logger.info(f"💰 REAL SELL SENT: {tx_hash_hex}")
+        logger.info(f"🔗 View on BSCScan: https://bscscan.com/tx/{tx_hash_hex}")
+        
+        return tx_hash_hex
+        
+    except Exception as e:
+        logger.error(f"REAL sell transaction failed: {e}")
+        return None
     """Execute a demo trade for a real detected token"""
     try:
         # Get trading configuration
