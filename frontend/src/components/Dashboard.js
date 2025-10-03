@@ -35,9 +35,12 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId }) => {
       let statsData = {};
       let walletsData = [];
 
-      // Fetch positions with individual error handling
+      // Fetch positions with wallet filtering
       try {
-        const positionsRes = await axios.get(`${API}/positions`);
+        const positionsUrl = selectedWalletId 
+          ? `${API}/positions?wallet_id=${selectedWalletId}` 
+          : `${API}/positions`;
+        const positionsRes = await axios.get(positionsUrl);
         positionsData = positionsRes.data;
       } catch (error) {
         console.error('Failed to fetch positions:', error);
