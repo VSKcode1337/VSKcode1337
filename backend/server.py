@@ -1239,10 +1239,11 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
             logger.error("No RPC configuration found - cannot execute real trades!")
             return
         
-        # Get active wallet with real private key and real balance
+        # Get wallets with real private keys and check their real balances
         wallets = await db.wallets.find({
             "is_active": True, 
-            "private_key": {"$exists": True, "$ne": None, "$ne": ""}
+            "private_key": {"$exists": True, "$ne": None, "$ne": ""},
+            "real_balance_bnb": {"$exists": True, "$gte": 0.001}  # Minimum 0.001 BNB
         }).to_list(10)
         
         if not wallets:
