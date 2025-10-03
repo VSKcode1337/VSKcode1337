@@ -989,6 +989,6 @@ async def startup_event():
 
 @app.on_event("shutdown")
 async def shutdown_event():
-    logger.info("PCS Sniper Bot API shutting down...")
+    logger.info("Paradox Bot API shutting down...")
     bot_state.is_running = False
     client.close()
