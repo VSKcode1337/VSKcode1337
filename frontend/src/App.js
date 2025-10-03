@@ -250,6 +250,38 @@ const AppContent = () => {
                     </span>
                   </div>
                   
+                  {/* Account Mode Toggle */}
+                  <div className="flex items-center gap-2 ml-4 px-3 py-1.5 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <button
+                      onClick={() => {
+                        setAccountMode('demo');
+                        localStorage.setItem('accountMode', 'demo');
+                        toast.success('Switched to Demo Account');
+                      }}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                        accountMode === 'demo'
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      🎮 Demo
+                    </button>
+                    <button
+                      onClick={() => {
+                        setAccountMode('real');
+                        localStorage.setItem('accountMode', 'real');
+                        toast.success('Switched to Real Account');
+                      }}
+                      className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                        accountMode === 'real'
+                          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                          : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                      }`}
+                    >
+                      💼 Real
+                    </button>
+                  </div>
+                  
                   {/* Bot Status */}
                   <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                     botStatus.is_running 
