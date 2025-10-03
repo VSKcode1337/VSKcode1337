@@ -372,8 +372,13 @@ async def add_wallet(wallet_input: WalletInput):
     return wallet
 
 @api_router.get("/positions", response_model=List[Position])
-async def get_positions():
-    positions = await db.positions.find().sort("entry_time", -1).to_list(100)
+async def get_positions(wallet_id: Optional[str] = None):
+    """Get positions, optionally filtered by wallet_id"""
+    query = {}
+    if wallet_id:
+        query["wallet_id"] = wallet_id
+        
+    positions = await db.positions.find(query).sort("entry_time", -1).to_list(100)
     return [Position(**pos) for pos in positions]
 
 @api_router.get("/pairs/detected", response_model=List[NewPairEvent])
