@@ -58,14 +58,26 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const [positionsRes, pairsRes, statsRes] = await Promise.all([
+      const [positionsRes, pairsRes, statsRes, walletsRes] = await Promise.all([
         axios.get(`${API}/positions`),
         axios.get(`${API}/pairs/detected`),
-        axios.get(`${API}/stats`)
+        axios.get(`${API}/stats`),
+        axios.get(`${API}/wallets`)
       ]);
       
       const allPositions = positionsRes.data;
-      const closedPositions = allPositions.filter(p => p.status === 'closed');
+      const wallets = walletsRes.data;
+      
+      // Add wallet names to positions
+      const positionsWithWallets = allPositions.map(position => {
+        const wallet = wallets.find(w => w.id === position.wallet_id);
+        return {
+          ...position,
+          wallet_name: wallet ? wallet.name : 'Unknown Wallet'
+        };
+      });
+      
+      const closedPositions = positionsWithWallets.filter(p => p.status === 'closed');
       
       // Calculate real stats from actual positions
       const totalPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
@@ -83,7 +95,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         win_rate_percent: winRate
       };
       
-      setPositions(allPositions);
+      setPositions(positionsWithWallets);
       setDetectedPairs(pairsRes.data);
       setStats(calculatedStats);
     } catch (error) {
