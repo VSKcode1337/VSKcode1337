@@ -324,15 +324,25 @@ const WalletManager = ({ ws }) => {
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-400">Balance</Label>
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-semibold text-sm md:text-base">
-                      {formatBalance(wallet.balance_bnb)} BNB
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="text-white font-semibold text-sm md:text-base">
+                        {formatBalance(wallet.real_balance_bnb || 0)} BNB
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        Real: {formatBalance(wallet.real_balance_bnb || 0)} | Demo: {formatBalance(wallet.balance_bnb || 0)}
+                      </span>
+                    </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => {
-                        // Simulate balance refresh
-                        toast.success('Balance refreshed');
+                      onClick={async () => {
+                        try {
+                          const response = await axios.post(`${API}/wallets/${wallet.id}/check-real-balance`);
+                          toast.success('Real balance refreshed!');
+                          await fetchWallets(); // Refresh to show new balance
+                        } catch (error) {
+                          toast.error('Failed to refresh real balance');
+                        }
                       }}
                       className="h-7 w-7 md:h-8 md:w-8 p-0"
                     >
