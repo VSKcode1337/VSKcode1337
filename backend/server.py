@@ -967,7 +967,7 @@ app.include_router(api_router)
 
 @app.on_event("startup")
 async def startup_event():
-    logger.info("PCS Sniper Bot API starting up...")
+    logger.info("Paradox Bot API starting up...")
     # Initialize optimized high win-rate configuration
     config = await db.trading_config.find_one({"is_active": True})
     if not config:
