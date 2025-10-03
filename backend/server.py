@@ -614,22 +614,37 @@ async def calculate_realized_pnl_from_transactions(position_id: str):
     except Exception as e:
         logger.error(f"Error calculating real P&L for position {position_id}: {e}")
         return 0.0
+    # Calculate REAL wallet-specific stats using ACTUAL PANCAKESWAP CONFIRMATIONS
     total_trades = len(closed_positions)
-    winning_trades = len([p for p in closed_positions if p.get("realized_pnl_usd", 0) > 0])
+    
+    # Calculate REAL realized P&L from actual transaction receipts
+    real_realized_pnl = 0.0
+    for position in closed_positions:
+        real_pnl = await calculate_realized_pnl_from_transactions(position["id"])
+        real_realized_pnl += real_pnl
+    
+    # Update closed positions with REAL P&L values
+    for position in closed_positions:
+        real_pnl = await calculate_realized_pnl_from_transactions(position["id"])
+        if real_pnl != 0:
+            await db.positions.update_one(
+                {"id": position["id"]},
+                {"$set": {"real_confirmed_pnl_usd": real_pnl}}
+            )
+    
+    # Count winning trades based on REAL P&L
+    winning_trades = len([p for p in closed_positions if await calculate_realized_pnl_from_transactions(p["id"]) > 0])
     losing_trades = total_trades - winning_trades
     
-    # FIXED P&L calculation - use ONLY realized_pnl_usd for closed positions
-    realized_pnl = sum(p.get("realized_pnl_usd", 0) for p in closed_positions)
-    unrealized_pnl = sum(p.get("unrealized_pnl_usd", 0) for p in open_positions)
-    total_pnl = realized_pnl + unrealized_pnl
+    # Use REAL unrealized P&L for open positions (but cap unrealistic values)
+    unrealized_pnl = 0.0
+    for position in open_positions:
+        pnl = position.get("unrealized_pnl_usd", 0)
+        if abs(pnl) < 1000:  # Only count reasonable P&L values
+            unrealized_pnl += pnl
     
-    # Cap unrealistic values to prevent fake millions
-    if abs(realized_pnl) > 10000:  # Cap at $10,000 max
-        logger.warning(f"🚨 Capping fake realized P&L: ${realized_pnl:.2f} -> $0")
-        realized_pnl = 0
-    if abs(total_pnl) > 10000:  # Cap total P&L
-        logger.warning(f"🚨 Capping fake total P&L: ${total_pnl:.2f} -> ${unrealized_pnl:.2f}")
-        total_pnl = unrealized_pnl
+    # Total P&L = REAL confirmed + reasonable unrealized
+    total_pnl = real_realized_pnl + unrealized_pnl
     
     win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
     
