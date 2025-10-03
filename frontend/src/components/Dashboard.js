@@ -277,10 +277,10 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-white">
-              {50 + detectedPairs.length}
+              {stats.pairs_detected || 0}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              Live feed: {detectedPairs.length} new pairs detected
+              Live feed: {detectedPairs.length} recent pairs
             </p>
           </CardContent>
         </Card>
