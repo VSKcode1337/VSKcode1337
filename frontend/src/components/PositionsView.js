@@ -278,7 +278,7 @@ const PositionsView = ({ ws, selectedWalletId }) => {
                       <div className="mb-4">
                         <div className="text-sm text-gray-400 mb-2">Take Profit Levels</div>
                         <div className="grid grid-cols-3 gap-2">
-                          {[10, 20, 30].map((target, index) => {
+                          {(tradingConfig?.take_profit_targets || [10, 20, 30]).map((target, index) => {
                             const isHit = position.take_profits_hit?.includes(target);
                             return (
                               <div key={target} className={`p-2 rounded border ${
