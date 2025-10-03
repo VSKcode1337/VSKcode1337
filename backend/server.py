@@ -553,20 +553,22 @@ async def get_stats(wallet_id: Optional[str] = None):
         realized_pnl = 0.0
         unrealized_pnl = 0.0
         
-        # Calculate with caps to prevent fake millions
+        # Calculate with STRICT caps to prevent fake P&L
         for position in closed_positions:
             pnl = position.get("realized_pnl_usd", 0) or 0
-            if abs(pnl) <= 100:  # Only count reasonable P&L (under $100)
+            # STRICT cap - only count losses/gains under $50 per $5 trade
+            if abs(pnl) <= 50 and pnl != 0:  
                 realized_pnl += pnl
                 if pnl > 0:
                     winning_trades += 1
                 else:
                     losing_trades += 1
         
-        # Calculate unrealized for open positions
+        # Calculate unrealized for open positions with STRICT caps
         for position in open_positions:
             pnl = position.get("unrealized_pnl_usd", 0) or 0
-            if abs(pnl) <= 100:  # Only count reasonable P&L
+            # STRICT cap - max $50 profit/loss per $5 trade
+            if abs(pnl) <= 50:
                 unrealized_pnl += pnl
         
         total_pnl = realized_pnl + unrealized_pnl
