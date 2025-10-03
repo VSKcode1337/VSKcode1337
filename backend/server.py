@@ -698,25 +698,39 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
             return
         
         position_id = position["id"]
-        entry_time = datetime.fromisoformat(position["entry_time"].replace('Z', '+00:00')) if isinstance(position["entry_time"], str) else position["entry_time"]
+        
+        # Handle datetime parsing more robustly
+        entry_time_raw = position.get("entry_time")
+        if isinstance(entry_time_raw, str):
+            # Parse ISO format datetime string
+            try:
+                entry_time = datetime.fromisoformat(entry_time_raw.replace('Z', '+00:00'))
+            except:
+                # Fallback parsing
+                entry_time = datetime.strptime(entry_time_raw.split('.')[0], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
+        else:
+            entry_time = entry_time_raw
+        
         current_time = datetime.now(timezone.utc)
         position_age_minutes = (current_time - entry_time).total_seconds() / 60
         
         should_close = False
         close_reason = ""
         
-        # 1. Time-based exit check
+        logger.info(f"🕐 Position {position.get('token_symbol')} age: {position_age_minutes:.1f} minutes")
+        
+        # 1. Time-based exit check (PRIORITY: Apply to ALL positions including old ones)
         max_time = config.get("max_position_time_minutes", 90)
         if position_age_minutes >= max_time:
             should_close = True
-            close_reason = f"Time limit reached ({max_time} minutes)"
+            close_reason = f"Time limit reached ({max_time} minutes, actual: {position_age_minutes:.1f})"
             logger.info(f"⏰ Position {position.get('token_symbol')} auto-closing: {close_reason}")
         
         # 2. Stop loss check
         stop_loss_percent = config.get("stop_loss_percent", 50)
         if stop_loss_percent > 0 and unrealized_pnl_percent <= -stop_loss_percent:
             should_close = True
-            close_reason = f"Stop loss triggered (-{stop_loss_percent}%)"
+            close_reason = f"Stop loss triggered (-{stop_loss_percent}%, actual: {unrealized_pnl_percent:.1f}%)"
             logger.info(f"🛑 Position {position.get('token_symbol')} auto-closing: {close_reason}")
         
         # 3. Take profit checks
@@ -725,16 +739,20 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
             target_percent = (target_multiplier - 1) * 100  # Convert 10x to 900%
             if unrealized_pnl_percent >= target_percent:
                 should_close = True
-                close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%)"
+                close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%, actual: +{unrealized_pnl_percent:.1f}%)"
                 logger.info(f"💰 Position {position.get('token_symbol')} auto-closing: {close_reason}")
                 break
         
         if should_close:
             # Auto-close the position
             await auto_close_position(position_id, close_reason, current_price)
+            return True
+        
+        return False
             
     except Exception as e:
         logger.error(f"Error in auto-close check for position {position.get('id')}: {e}")
+        return False
 
 async def auto_close_position(position_id: str, reason: str, current_price: float):
     """Automatically close a position and return funds to wallet"""
