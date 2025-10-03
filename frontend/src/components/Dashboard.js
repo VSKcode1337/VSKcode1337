@@ -40,11 +40,12 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     }
   }, [botStatus.last_updated]);
 
-  // WebSocket listener for real-time pair detection
+  // WebSocket listener for real-time updates
   useEffect(() => {
     if (ws) {
       const handleMessage = (event) => {
         const message = JSON.parse(event.data);
+        
         if (message.type === 'new_pair_detected') {
           // Add new pair to the feed (keep last 20)
           setDetectedPairs(prev => [message.data, ...prev.slice(0, 19)]);
@@ -60,6 +61,39 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           
           toast.success(`New pair detected: ${message.data.token_symbol}`, {
             description: `Liquidity: $${message.data.liquidity_usd?.toLocaleString()}`
+          });
+        } else if (message.type === 'positions_updated') {
+          // Update positions with new prices and P&L
+          const updatedPositionsData = message.data.positions;
+          
+          setPositions(prevPositions => {
+            return prevPositions.map(position => {
+              const update = updatedPositionsData.find(u => u.id === position.id);
+              if (update) {
+                return {
+                  ...position,
+                  current_price: update.current_price,
+                  current_value_usd: update.current_value_usd,
+                  unrealized_pnl_usd: update.unrealized_pnl_usd,
+                  unrealized_pnl_percent: update.unrealized_pnl_percent
+                };
+              }
+              return position;
+            });
+          });
+          
+          // Recalculate stats based on updated positions
+          setPositions(prevPositions => {
+            const openPositions = prevPositions.filter(p => p.status === 'open' || p.status === 'partial');
+            const unrealizedPnL = openPositions.reduce((sum, p) => sum + (p.unrealized_pnl_usd || 0), 0);
+            
+            setStats(prev => ({
+              ...prev,
+              unrealized_pnl_usd: unrealizedPnL,
+              total_pnl_usd: (prev.realized_pnl_usd || 0) + unrealizedPnL
+            }));
+            
+            return prevPositions;
           });
         }
       };
