@@ -614,37 +614,28 @@ async def calculate_realized_pnl_from_transactions(position_id: str):
     except Exception as e:
         logger.error(f"Error calculating real P&L for position {position_id}: {e}")
         return 0.0
-    # Calculate REAL wallet-specific stats using ACTUAL PANCAKESWAP CONFIRMATIONS
+    # Calculate SIMPLE wallet-specific stats (fix dashboard loading)
     total_trades = len(closed_positions)
-    
-    # Calculate REAL realized P&L from actual transaction receipts
-    real_realized_pnl = 0.0
-    for position in closed_positions:
-        real_pnl = await calculate_realized_pnl_from_transactions(position["id"])
-        real_realized_pnl += real_pnl
-    
-    # Update closed positions with REAL P&L values
-    for position in closed_positions:
-        real_pnl = await calculate_realized_pnl_from_transactions(position["id"])
-        if real_pnl != 0:
-            await db.positions.update_one(
-                {"id": position["id"]},
-                {"$set": {"real_confirmed_pnl_usd": real_pnl}}
-            )
-    
-    # Count winning trades based on REAL P&L
-    winning_trades = len([p for p in closed_positions if await calculate_realized_pnl_from_transactions(p["id"]) > 0])
+    winning_trades = len([p for p in closed_positions if p.get("realized_pnl_usd", 0) > 0])
     losing_trades = total_trades - winning_trades
     
-    # Use REAL unrealized P&L for open positions (but cap unrealistic values)
+    # SIMPLE P&L calculation to prevent dashboard crashes
+    realized_pnl = 0.0
+    for position in closed_positions:
+        pnl = position.get("realized_pnl_usd", 0)
+        # Cap fake P&L values
+        if abs(pnl) > 1000:  # Cap at $1000 max per position
+            pnl = 0
+        realized_pnl += pnl
+    
+    # Calculate unrealized P&L for open positions (capped)
     unrealized_pnl = 0.0
     for position in open_positions:
         pnl = position.get("unrealized_pnl_usd", 0)
-        if abs(pnl) < 1000:  # Only count reasonable P&L values
+        if abs(pnl) < 1000:  # Only count reasonable values
             unrealized_pnl += pnl
     
-    # Total P&L = REAL confirmed + reasonable unrealized
-    total_pnl = real_realized_pnl + unrealized_pnl
+    total_pnl = realized_pnl + unrealized_pnl
     
     win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
     
