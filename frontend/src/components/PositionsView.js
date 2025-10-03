@@ -47,8 +47,24 @@ const PositionsView = ({ ws, selectedWalletId }) => {
       const positionsUrl = selectedWalletId 
         ? `${API}/positions?wallet_id=${selectedWalletId}` 
         : `${API}/positions`;
-      const response = await axios.get(positionsUrl);
-      setPositions(response.data);
+      const positionsRes = await axios.get(positionsUrl);
+      
+      const walletsRes = await axios.get(`${API}/wallets`);
+      
+      // Fetch current trading config for TP targets
+      const configRes = await axios.get(`${API}/config/trading`);
+      setTradingConfig(configRes.data);
+      
+      // Add wallet names to positions
+      const positionsWithWallets = positionsRes.data.map(position => {
+        const wallet = walletsRes.data.find(w => w.id === position.wallet_id);
+        return {
+          ...position,
+          wallet_name: wallet ? wallet.name : 'Unknown Wallet'
+        };
+      });
+      
+      setPositions(positionsWithWallets);
     } catch (error) {
       console.error('Failed to fetch positions:', error);
       toast.error('Failed to load positions');
