@@ -281,7 +281,7 @@ const WalletManager = ({ ws }) => {
           </div>
         ) : (
           wallets.map((wallet) => (
-            <Card key={wallet.id} className="glass border-gray-700 hover:border-gray-600 transition-colors" data-testid="wallet-card">
+            <Card key={wallet.id} className="glass border-gray-700 hover:border-gray-600 transition-colors max-w-full overflow-hidden" data-testid="wallet-card">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-white text-lg">{wallet.name}</CardTitle>
