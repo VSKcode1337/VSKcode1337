@@ -42,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 # ==================== MODELS ====================
 
+class WalletInput(BaseModel):
+    name: str
+    private_key: str
+
 class WalletConfig(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
