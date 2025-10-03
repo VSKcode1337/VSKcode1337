@@ -372,6 +372,7 @@ const AppContent = () => {
             <Dashboard 
               botStatus={botStatus} 
               isConnected={isConnected}
+              isConnecting={isConnecting}
               ws={ws}
               refreshTrigger={Date.now()} // Force refresh when props change
             />
