@@ -419,20 +419,18 @@ const AppContent = () => {
             <div className="hidden md:flex items-center justify-center">
               <div className="flex space-x-1">
                 <NavButton href="/" label="Dashboard" icon={LayoutDashboard} />
-                <NavButton href="/sniper" label="Paradox Control" icon={Zap} />
                 <NavButton href="/positions" label="Positions" icon={Briefcase} />
-                <NavButton href="/config" label="Configuration" icon={Settings} />
                 <NavButton href="/wallets" label="Wallets" icon={Wallet} />
+                <NavButton href="/config" label="Configuration" icon={Settings} />
               </div>
             </div>
             
             {/* Mobile Navigation */}
             <div className="flex md:hidden flex-wrap gap-2 justify-center">
               <NavButton href="/" label="Dashboard" mobileLabel="Dashboard" icon={LayoutDashboard} />
-              <NavButton href="/sniper" label="Paradox" mobileLabel="Paradox" icon={Zap} />
               <NavButton href="/positions" label="Positions" mobileLabel="Positions" icon={Briefcase} />
-              <NavButton href="/config" label="Config" mobileLabel="Config" icon={Settings} />
               <NavButton href="/wallets" label="Wallets" mobileLabel="Wallets" icon={Wallet} />
+              <NavButton href="/config" label="Config" mobileLabel="Config" icon={Settings} />
             </div>
           </div>
         </nav>
