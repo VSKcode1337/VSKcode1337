@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Dashboard = ({ botStatus, isConnected, ws }) => {
+const Dashboard = ({ botStatus, isConnected, isConnecting, ws }) => {
   const [positions, setPositions] = useState([]);
   const [detectedPairs, setDetectedPairs] = useState([]);
   const [stats, setStats] = useState({
