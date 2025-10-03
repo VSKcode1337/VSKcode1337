@@ -285,13 +285,13 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         description: 'Pair detection history has been reset'
       });
       
-      // Refresh dashboard data
-      fetchDashboardData();
+      // Manual refresh instead of calling fetchDashboardData
+      window.location.reload();
     } catch (error) {
       console.error('Failed to reset pairs:', error);
       toast.error('Failed to reset detected pairs');
     }
-  }, [fetchDashboardData]);
+  }, []); // Empty dependency array
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
