@@ -1339,8 +1339,75 @@ async def start_pair_monitoring():
             await asyncio.sleep(10)
 
 async def check_auto_close_conditions(position, current_price, unrealized_pnl_percent):
-    """DISABLED - No auto-close. Let user manually control when to sell for maximum profit"""
-    return False  # Never auto-close - user controls everything
+    """Check auto-close conditions - TAKE PROFIT PROTECTION ENABLED"""
+    try:
+        # Get CURRENT trading configuration
+        config = await db.trading_config.find_one({"is_active": True})
+        if not config:
+            logger.warning("No active trading config found for auto-close check")
+            return False
+        
+        position_id = position["id"]
+        
+        # Handle datetime parsing
+        entry_time_raw = position.get("entry_time")
+        if isinstance(entry_time_raw, str):
+            try:
+                entry_time = datetime.fromisoformat(entry_time_raw.replace('Z', '+00:00'))
+            except:
+                entry_time = datetime.strptime(entry_time_raw.split('.')[0], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
+        else:
+            entry_time = entry_time_raw
+            if entry_time.tzinfo is None:
+                entry_time = entry_time.replace(tzinfo=timezone.utc)
+        
+        current_time = datetime.now(timezone.utc)
+        position_age_minutes = (current_time - entry_time).total_seconds() / 60
+        
+        should_close = False
+        close_reason = ""
+        
+        # Log current status
+        logger.info(f"🕐 Checking {position.get('token_symbol')}: {unrealized_pnl_percent:.1f}% profit, {position_age_minutes:.1f}min old")
+        
+        # 1. TAKE PROFIT PROTECTION (PRIORITY - Protect profits!)
+        take_profit_targets = config.get("take_profit_targets", [])
+        for i, target_multiplier in enumerate(take_profit_targets):
+            if target_multiplier <= 1:
+                continue
+                
+            target_percent = (target_multiplier - 1) * 100  # Convert 3x to 200%, 5x to 400%
+            
+            if unrealized_pnl_percent >= target_percent:
+                should_close = True
+                close_reason = f"💰 TAKE PROFIT {target_multiplier}x triggered! (+{target_percent:.0f}% target, actual: +{unrealized_pnl_percent:.1f}%)"
+                logger.info(f"💰 {position.get('token_symbol')} TAKE PROFIT: {close_reason}")
+                break
+        
+        # 2. Time-based exit check (secondary protection)
+        max_time = config.get("max_position_time_minutes", 20)
+        if position_age_minutes >= max_time:
+            should_close = True
+            close_reason = f"⏰ Time limit reached ({max_time}min, actual: {position_age_minutes:.1f}min)"
+            logger.info(f"⏰ {position.get('token_symbol')} TIME EXIT: {close_reason}")
+        
+        # 3. Stop loss check (loss protection)
+        stop_loss = config.get("stop_loss_percent", 30)
+        if stop_loss > 0 and unrealized_pnl_percent <= -stop_loss:
+            should_close = True
+            close_reason = f"🛑 Stop loss triggered (-{stop_loss}%, actual: {unrealized_pnl_percent:.1f}%)"
+            logger.info(f"🛑 {position.get('token_symbol')} STOP LOSS: {close_reason}")
+        
+        if should_close:
+            # Execute immediate auto-close
+            await auto_close_position(position_id, close_reason, current_price)
+            return True
+        
+        return False
+            
+    except Exception as e:
+        logger.error(f"Error in auto-close check for position {position.get('id')}: {e}")
+        return False
 
 async def auto_close_position(position_id: str, reason: str, current_price: float):
     """Automatically close a position with REAL PancakeSwap sell execution"""
