@@ -380,6 +380,26 @@ async def close_position(position_id: str):
     
     # For demo positions, simulate closing
     if position.get("status") != "closed":
+        # Calculate final value to return to wallet
+        current_value_usd = position.get("current_value_usd", 0)
+        entry_amount_usd = position.get("entry_amount_usd", 0)
+        realized_pnl_usd = position.get("unrealized_pnl_usd", 0)
+        
+        # Convert USD back to BNB (assuming 1 BNB = ~$600 for demo)
+        bnb_price = 600  # You can update this with real price later
+        bnb_to_return = current_value_usd / bnb_price
+        
+        # Update wallet balance
+        wallet_id = position.get("wallet_id")
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if wallet:
+            new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
+            await db.wallets.update_one(
+                {"id": wallet_id},
+                {"$set": {"balance_bnb": new_balance}}
+            )
+            logger.info(f"Wallet {wallet.get('name')} updated: +{bnb_to_return:.4f} BNB (new balance: {new_balance:.4f} BNB)")
+        
         # Update position status to closed
         await db.positions.update_one(
             {"id": position_id},
@@ -387,7 +407,7 @@ async def close_position(position_id: str):
                 "$set": {
                     "status": "closed",
                     "exit_time": datetime.now(timezone.utc).isoformat(),
-                    "realized_pnl_usd": position.get("unrealized_pnl_usd", 0),
+                    "realized_pnl_usd": realized_pnl_usd,
                     "tokens_sold": position.get("tokens_held", 0)
                 }
             }
@@ -399,16 +419,19 @@ async def close_position(position_id: str):
             "data": {
                 "position_id": position_id,
                 "token_symbol": position.get("token_symbol"),
-                "realized_pnl": position.get("unrealized_pnl_usd", 0)
+                "realized_pnl": realized_pnl_usd,
+                "wallet_id": wallet_id,
+                "bnb_returned": bnb_to_return
             }
         })
         
-        logger.info(f"Position closed manually: {position.get('token_symbol')} - PnL: ${position.get('unrealized_pnl_usd', 0):.2f}")
+        logger.info(f"Position closed manually: {position.get('token_symbol')} - PnL: ${realized_pnl_usd:.2f}")
         
         return {
             "message": "Position closed successfully",
             "position_id": position_id,
-            "realized_pnl": position.get("unrealized_pnl_usd", 0)
+            "realized_pnl": realized_pnl_usd,
+            "bnb_returned": bnb_to_return
         }
     else:
         raise HTTPException(status_code=400, detail="Position is already closed")
