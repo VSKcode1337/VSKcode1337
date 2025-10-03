@@ -333,13 +333,17 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                         </div>
                         <div className="text-center">
                           <div className="text-white font-semibold">
-                            {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
-                              timeZone: 'Europe/London',
-                              hour12: false,
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit'
-                            })}
+                            {(() => {
+                              // Create a proper Date object and convert to London time
+                              const utcDate = new Date(pair.detected_at);
+                              const londonTime = new Date(utcDate.toLocaleString("en-US", {timeZone: "Europe/London"}));
+                              return londonTime.toLocaleTimeString('en-GB', { 
+                                hour12: false,
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                              });
+                            })()}
                           </div>
                           <div className="text-gray-400 text-xs">London Time</div>
                         </div>
