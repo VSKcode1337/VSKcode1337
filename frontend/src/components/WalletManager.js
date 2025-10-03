@@ -350,7 +350,7 @@ const WalletManager = ({ ws }) => {
                         {formatBalance(wallet.real_balance_bnb || 0)} BNB
                       </span>
                       <span className="text-xs text-gray-400">
-                        Real: {formatBalance(wallet.real_balance_bnb || 0)} | Demo: {formatBalance(wallet.balance_bnb || 0)}
+                        ~${((wallet.real_balance_bnb || 0) * 1170).toFixed(2)} USD
                       </span>
                     </div>
                     <Button
