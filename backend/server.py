@@ -112,6 +112,8 @@ ERC20_ABI = [
     }
 ]
 
+# ==================== MODELS ====================
+
 class WalletInput(BaseModel):
     name: str
     private_key: str
