@@ -414,18 +414,45 @@ async def reset_detected_pairs():
         logger.error(f"Error clearing detected pairs: {e}")
         raise HTTPException(status_code=500, detail="Failed to clear detected pairs")
 
-@api_router.get("/stats", response_model=TradingStats)
-async def get_trading_stats():
-    # Get the actual count of detected pairs from database
-    total_pairs_detected = await db.detected_pairs.count_documents({})
+@api_router.get("/stats")
+async def get_stats(wallet_id: Optional[str] = None):
+    """Get trading statistics, optionally filtered by wallet_id"""
+    query = {}
+    if wallet_id:
+        query["wallet_id"] = wallet_id
     
-    stats = await db.trading_stats.find_one({}) or TradingStats().dict()
-    stats_obj = TradingStats(**stats)
+    # Get positions for statistics
+    all_positions = await db.positions.find(query).to_list(1000)
+    open_positions = [p for p in all_positions if p.get("status") in ["open", "partial"]]
+    closed_positions = [p for p in all_positions if p.get("status") == "closed"]
     
-    # Override with actual count from database
-    stats_obj.pairs_detected = total_pairs_detected
+    # Calculate wallet-specific stats
+    total_trades = len(closed_positions)
+    winning_trades = len([p for p in closed_positions if (p.get("realized_pnl_usd", 0) + p.get("unrealized_pnl_usd", 0)) > 0])
+    losing_trades = total_trades - winning_trades
     
-    return stats_obj
+    realized_pnl = sum(p.get("realized_pnl_usd", 0) + p.get("unrealized_pnl_usd", 0) for p in closed_positions)
+    unrealized_pnl = sum(p.get("unrealized_pnl_usd", 0) for p in open_positions)
+    total_pnl = realized_pnl + unrealized_pnl
+    
+    win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
+    
+    # Get global pairs detected count (not wallet-specific)
+    global_pairs_detected = await db.detected_pairs.count_documents({})
+    
+    return {
+        "total_trades": total_trades,
+        "winning_trades": winning_trades,
+        "losing_trades": losing_trades,
+        "total_pnl_usd": total_pnl,
+        "realized_pnl_usd": realized_pnl,
+        "unrealized_pnl_usd": unrealized_pnl,
+        "win_rate_percent": win_rate,
+        "pairs_detected": global_pairs_detected,  # Global count
+        "pairs_traded": total_trades,  # Wallet-specific
+        "active_positions": len(open_positions),
+        "wallet_filtered": wallet_id is not None
+    }
 
 @api_router.delete("/wallets/{wallet_id}")
 async def delete_wallet(wallet_id: str):
