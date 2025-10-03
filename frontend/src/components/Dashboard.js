@@ -25,7 +25,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     pairs_traded: 0
   });
   const [loading, setLoading] = useState(true);
-  const [livePairsCount, setLivePairsCount] = useState(0);
+  const [totalPairsDetected, setTotalPairsDetected] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
@@ -40,25 +40,24 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     }
   }, [botStatus.last_updated]);
 
-  // Real-time pairs counter - simple increment
-  useEffect(() => {
-    // Initialize with current detected pairs length if available
-    if (detectedPairs.length > 0) {
-      setLivePairsCount(detectedPairs.length);
-    }
-  }, [detectedPairs.length]);
-
+  // WebSocket listener for real-time pair detection
   useEffect(() => {
     if (ws) {
       const handleMessage = (event) => {
         const message = JSON.parse(event.data);
         if (message.type === 'new_pair_detected') {
-          setDetectedPairs(prev => {
-            const newPairs = [message.data, ...prev.slice(0, 19)];
-            // Increment live pairs count by 1 for each new pair detected
-            setLivePairsCount(prev => prev + 1);
-            return newPairs;
-          });
+          // Add new pair to the feed (keep last 20)
+          setDetectedPairs(prev => [message.data, ...prev.slice(0, 19)]);
+          
+          // Increment the total counter by 1
+          setTotalPairsDetected(prev => prev + 1);
+          
+          // Update stats to reflect new count
+          setStats(prev => ({
+            ...prev,
+            pairs_detected: prev.pairs_detected + 1
+          }));
+          
           toast.success(`New pair detected: ${message.data.token_symbol}`, {
             description: `Liquidity: $${message.data.liquidity_usd?.toLocaleString()}`
           });
