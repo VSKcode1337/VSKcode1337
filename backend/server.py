@@ -189,10 +189,6 @@ class BlockchainConfig:
             {"constant": True, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "type": "function"},
             {"constant": True, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "type": "function"}
         ]
-                "name": "PairCreated",
-                "type": "event"
-            }
-        ]
         
         self.router_abi = [
             {
