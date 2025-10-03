@@ -981,7 +981,11 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
         import random
         wallet = random.choice(wallets)
         
-        # Calculate trade size based on config
+        # Get real-time price for accurate entry
+        real_time_price = await get_real_time_token_price(detected_pair.token_address)
+        entry_price = real_time_price['price_usd'] if real_time_price else detected_pair.initial_price
+        
+        # Calculate trade size based on current config
         trade_amount_usd = config.get('trade_amount_usd', 50)
         bnb_price = 320.0  # Approximate BNB price for demo
         trade_amount_bnb = trade_amount_usd / bnb_price
@@ -991,7 +995,7 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             logger.warning(f"Wallet {wallet.get('name')} insufficient balance for ${trade_amount_usd} trade")
             return
             
-        # Create demo position with real token data
+        # Create demo position with REAL-TIME entry price
         demo_position = Position(
             wallet_id=wallet['id'],
             token_address=detected_pair.token_address,
@@ -1000,10 +1004,10 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             pair_address=detected_pair.pair_address,
             entry_amount_bnb=trade_amount_bnb,
             entry_amount_usd=trade_amount_usd,
-            entry_price=detected_pair.initial_price,
-            current_price=detected_pair.initial_price,
+            entry_price=entry_price,  # Use real-time price
+            current_price=entry_price,  # Start with real-time price
             current_value_usd=trade_amount_usd,
-            tokens_held=trade_amount_usd / detected_pair.initial_price if detected_pair.initial_price > 0 else 1000,
+            tokens_held=trade_amount_usd / entry_price if entry_price > 0 else 1000,
             entry_time=datetime.now(timezone.utc),
             status="open",
             unrealized_pnl_usd=0.0,
