@@ -365,7 +365,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                   className="btn-danger"
                   data-testid="stop-sniper-btn"
                 >
-                  Stop Sniper
+                  Stop Paradox
                 </Button>
               ) : (
                 <Button 
