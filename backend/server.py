@@ -737,6 +737,175 @@ async def create_demo_position():
     
     logger.info(f"Demo position created: {demo_position.token_symbol} - {demo_position.unrealized_pnl_percent:.2f}% P&L")
 
+async def get_token_info(token_address: str):
+    """Fetch token information from blockchain"""
+    try:
+        token_contract = blockchain_config.w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=blockchain_config.erc20_abi
+        )
+        
+        # Fetch token data
+        symbol = token_contract.functions.name().call()[:10]  # Limit length
+        name = token_contract.functions.symbol().call()[:20]
+        decimals = token_contract.functions.decimals().call()
+        
+        return {
+            "symbol": symbol,
+            "name": name,
+            "decimals": decimals
+        }
+    except Exception as e:
+        logger.error(f"Error fetching token info for {token_address}: {e}")
+        return {"symbol": "UNKNOWN", "name": "Unknown Token", "decimals": 18}
+
+async def get_pair_info(pair_address: str):
+    """Fetch pair reserves and calculate liquidity"""
+    try:
+        pair_contract = blockchain_config.w3.eth.contract(
+            address=Web3.to_checksum_address(pair_address),
+            abi=blockchain_config.pair_abi
+        )
+        
+        # Get reserves
+        reserves = pair_contract.functions.getReserves().call()
+        reserve0 = reserves[0] / 1e18
+        reserve1 = reserves[1] / 1e18
+        
+        # Get token addresses
+        token0 = pair_contract.functions.token0().call()
+        token1 = pair_contract.functions.token1().call()
+        
+        # Determine which is WBNB
+        wbnb_address = blockchain_config.wbnb_address.lower()
+        if token0.lower() == wbnb_address:
+            wbnb_reserves = reserve0
+            token_reserves = reserve1
+            token_address = token1
+        else:
+            wbnb_reserves = reserve1
+            token_reserves = reserve0
+            token_address = token0
+        
+        # Calculate liquidity (assuming BNB = $600)
+        bnb_price_usd = 600
+        liquidity_usd = wbnb_reserves * bnb_price_usd * 2  # Total liquidity
+        
+        # Calculate initial price
+        if token_reserves > 0:
+            initial_price = wbnb_reserves / token_reserves
+        else:
+            initial_price = 0
+        
+        return {
+            "wbnb_reserves": wbnb_reserves,
+            "token_reserves": token_reserves,
+            "token_address": token_address,
+            "liquidity_usd": liquidity_usd,
+            "initial_price": initial_price
+        }
+    except Exception as e:
+        logger.error(f"Error fetching pair info for {pair_address}: {e}")
+        return None
+
+async def scan_real_pairs():
+    """Scan for real PancakeSwap pairs using blockchain data"""
+    try:
+        # Load saved RPC config from database
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config or not rpc_config.get('bsc_rpc_ws'):
+            logger.warning("No WebSocket RPC configured, using HTTP polling")
+            await scan_pairs_via_http()
+            return
+        
+        # Update blockchain config with saved credentials
+        blockchain_config.bsc_rpc_ws = rpc_config['bsc_rpc_ws']
+        blockchain_config.bsc_rpc_http = rpc_config['bsc_rpc_http']
+        blockchain_config.w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        
+        logger.info(f"Starting real pair scanning via WebSocket...")
+        
+        # For now, use HTTP polling (WebSocket implementation is complex)
+        await scan_pairs_via_http()
+        
+    except Exception as e:
+        logger.error(f"Error in real pair scanning: {e}")
+        await asyncio.sleep(10)
+
+async def scan_pairs_via_http():
+    """Scan for new pairs using HTTP polling"""
+    try:
+        # Get the latest block
+        latest_block = blockchain_config.w3.eth.block_number
+        
+        # Get factory contract
+        factory_contract = blockchain_config.w3.eth.contract(
+            address=Web3.to_checksum_address(blockchain_config.pancake_factory),
+            abi=blockchain_config.factory_abi
+        )
+        
+        # Get PairCreated events from recent blocks (last 20 blocks)
+        from_block = max(0, latest_block - 20)
+        
+        try:
+            events = factory_contract.events.PairCreated.get_logs(
+                fromBlock=from_block,
+                toBlock=latest_block
+            )
+            
+            for event in events:
+                # Process each pair creation event
+                pair_address = event['args']['pair']
+                token0 = event['args']['token0']
+                token1 = event['args']['token1']
+                
+                # Check if already detected
+                existing = await db.detected_pairs.find_one({"pair_address": pair_address.lower()})
+                if existing:
+                    continue
+                
+                # Get pair info
+                pair_info = await get_pair_info(pair_address)
+                if not pair_info or pair_info['liquidity_usd'] < 5000:
+                    continue
+                
+                # Get token info
+                token_info = await get_token_info(pair_info['token_address'])
+                
+                # Create NewPairEvent
+                new_pair = NewPairEvent(
+                    pair_address=pair_address.lower(),
+                    token0_address=token0.lower(),
+                    token1_address=token1.lower(),
+                    token_address=pair_info['token_address'].lower(),
+                    token_symbol=token_info['symbol'],
+                    token_name=token_info['name'],
+                    wbnb_reserves=pair_info['wbnb_reserves'],
+                    token_reserves=pair_info['token_reserves'],
+                    liquidity_usd=pair_info['liquidity_usd'],
+                    initial_price=pair_info['initial_price'],
+                    block_number=event['blockNumber'],
+                    transaction_hash=event['transactionHash'].hex(),
+                    detected_at=datetime.now(timezone.utc)
+                )
+                
+                # Store in database
+                await db.detected_pairs.insert_one(new_pair.dict())
+                
+                # Broadcast to connected clients
+                await bot_state.broadcast_to_clients({
+                    "type": "new_pair_detected",
+                    "data": new_pair.dict()
+                })
+                
+                logger.info(f"🚨 REAL PAIR DETECTED: {new_pair.token_symbol} - ${new_pair.liquidity_usd:,.2f} liquidity")
+                
+        except Exception as e:
+            logger.error(f"Error fetching events: {e}")
+        
+    except Exception as e:
+        logger.error(f"Error in HTTP pair scanning: {e}")
+
 async def simulate_pair_detection():
     """Simulate new pair detection for demo purposes"""
     import random
