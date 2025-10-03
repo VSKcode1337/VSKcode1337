@@ -27,6 +27,156 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
   const [loading, setLoading] = useState(true);
   const [totalPairsDetected, setTotalPairsDetected] = useState(0);
 
+  const fetchDashboardData = useCallback(async () => {
+    try:
+      // Fetch each endpoint individually with error handling
+      let positionsData = [];
+      let detectedPairsData = [];
+      let statsData = {};
+      let walletsData = [];
+
+      // Fetch positions with individual error handling
+      try {
+        const positionsRes = await axios.get(`${API}/positions`);
+        positionsData = positionsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch positions:', error);
+        toast.error('Failed to load positions data');
+      }
+
+      // Fetch pairs with individual error handling  
+      try {
+        const pairsRes = await axios.get(`${API}/pairs/detected`);
+        detectedPairsData = pairsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch pairs:', error);
+        toast.error('Failed to load pairs data');
+      }
+
+      // Fetch stats with individual error handling
+      try {
+        const statsRes = await axios.get(`${API}/stats`);
+        statsData = statsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        toast.error('Failed to load stats data');
+      }
+
+      // Fetch wallets with individual error handling
+      try {
+        const walletsRes = await axios.get(`${API}/wallets`);
+        walletsData = walletsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch wallets:', error);
+        toast.error('Failed to load wallets data');
+      }
+      
+      // Process data even if some calls failed
+      const allPositions = positionsData;
+      const wallets = walletsData;
+      const detectedPairs = detectedPairsData;
+      
+      // Add wallet names to positions
+      const positionsWithWallets = allPositions.map(position => {
+        const wallet = wallets.find(w => w.id === position.wallet_id);
+        return {
+          ...position,
+          wallet_name: wallet ? wallet.name : 'Unknown Wallet'
+        };
+      });
+      
+      const openPositions = positionsWithWallets.filter(p => p.status === 'open');
+      const closedPositions = positionsWithWallets.filter(p => p.status === 'closed');
+      
+      // Calculate REALIZED PnL (from closed positions only)
+      const realizedPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
+      
+      // Calculate UNREALIZED PnL (from open positions only)  
+      const unrealizedPnL = openPositions.reduce((sum, p) => {
+        const pnl = p.unrealized_pnl_usd || 0;
+        console.log(`Position ${p.token_symbol}: Unrealized PnL = ${pnl}`);
+        return sum + pnl;
+      }, 0);
+      
+      console.log(`Total Open Positions: ${openPositions.length}`);
+      console.log(`Calculated Unrealized PnL: ${unrealizedPnL}`);
+      
+      // Calculate TOTAL PnL (realized + unrealized)
+      const totalPnL = realizedPnL + unrealizedPnL;
+      
+      const winningTrades = closedPositions.filter(p => (p.realized_pnl_usd || p.unrealized_pnl_usd || 0) > 0).length;
+      const totalTrades = closedPositions.length;
+      const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
+      
+      // Update stats with calculated values
+      const calculatedStats = {
+        ...statsData,
+        total_pnl_usd: totalPnL,
+        realized_pnl_usd: realizedPnL,
+        unrealized_pnl_usd: unrealizedPnL,
+        winning_trades: winningTrades,
+        losing_trades: totalTrades - winningTrades,
+        total_trades: totalTrades,
+        win_rate_percent: winRate,
+        // Keep pairs_detected from backend (it has the real count from DB)
+        pairs_traded: totalTrades
+      };
+      
+      setPositions(positionsWithWallets);
+      setDetectedPairs(detectedPairsData);
+      setStats(calculatedStats);
+      // Initialize total pairs detected from backend stats (real DB count)
+      setTotalPairsDetected(statsData.pairs_detected || 0);
+    } catch (error) {
+      console.error('Critical error in fetchDashboardData:', error);
+      toast.error('Failed to load dashboard data');
+    } finally {
+      // ALWAYS set loading to false, regardless of any errors
+      setLoading(false);
+    }
+  }, []);
+
+  const resetDetectedPairs = useCallback(async () => {
+    console.log("🔧 Reset Pairs button clicked!"); // Debug log
+    
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all detected pairs?\n\nThis will permanently delete all pair history and cannot be undone.'
+    );
+    
+    if (!confirmed) {
+      console.log("🚫 Reset cancelled by user");
+      return;
+    }
+
+    console.log("🗑️ Starting pairs reset...");
+    
+    try {
+      const response = await axios.delete(`${API}/pairs/detected`);
+      console.log("✅ Backend reset successful:", response.data);
+      
+      // Clear the local state
+      setDetectedPairs([]);
+      setTotalPairsDetected(0);
+      
+      // Update stats to reflect reset
+      setStats(prev => ({
+        ...prev,
+        pairs_detected: 0
+      }));
+      
+      toast.success(`🗑️ Successfully cleared ${response.data.cleared_count} pairs`, {
+        description: 'Pair detection history has been reset'
+      });
+      
+      // Manual refresh instead of calling fetchDashboardData
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to reset pairs:', error);
+      toast.error('Failed to reset detected pairs');
+    }
+  }, []); // Empty dependency array
+
   useEffect(() => {
     fetchDashboardData();
     const interval = setInterval(fetchDashboardData, 5000);
