@@ -38,7 +38,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     if (botStatus.last_updated) {
       fetchDashboardData();
     }
-  }, [botStatus.last_updated]);
+  }, [botStatus.last_updated, fetchDashboardData]);
 
   // WebSocket listener for real-time updates
   useEffect(() => {
