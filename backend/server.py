@@ -647,7 +647,7 @@ async def calculate_realized_pnl_from_transactions(position_id: str):
         "winning_trades": winning_trades,
         "losing_trades": losing_trades,
         "total_pnl_usd": total_pnl,
-        "realized_pnl_usd": real_realized_pnl,
+        "realized_pnl_usd": realized_pnl,  # SIMPLE calculation to fix dashboard
         "unrealized_pnl_usd": unrealized_pnl,
         "win_rate_percent": win_rate,
         "pairs_detected": global_pairs_detected,  # Global count
