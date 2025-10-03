@@ -194,6 +194,19 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId, availableWall
           toast.info(`🗑️ Pairs reset: ${message.data.cleared_count} pairs cleared`, {
             description: 'Starting fresh with new detections only'
           });
+        } else if (message.type === 'real_position_created') {
+          // Show new real position immediately in dashboard
+          setStats(prev => ({
+            ...prev,
+            active_positions: prev.active_positions + 1
+          }));
+          
+          // Force dashboard refresh to show new position
+          fetchDashboardData();
+          
+          toast.success(`🔥 REAL TRADE: ${message.data.token_symbol}`, {
+            description: `$${message.data.entry_amount_usd} → Check Positions tab!`
+          });
         } else if (message.type === 'positions_updated') {
           // Update positions with new prices and P&L
           const updatedPositionsData = message.data.positions;
