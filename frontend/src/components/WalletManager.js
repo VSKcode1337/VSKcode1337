@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const WalletManager = () => {
+const WalletManager = ({ ws }) => {
   const [wallets, setWallets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
@@ -24,6 +24,22 @@ const WalletManager = () => {
   useEffect(() => {
     fetchWallets();
   }, []);
+
+  // Listen for WebSocket updates to refresh wallet balances
+  useEffect(() => {
+    if (ws) {
+      const handleMessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'position_closed' || message.type === 'positions_bulk_closed' || message.type === 'demo_position_created') {
+          // Refresh wallets when positions are created or closed
+          fetchWallets();
+        }
+      };
+      
+      ws.addEventListener('message', handleMessage);
+      return () => ws.removeEventListener('message', handleMessage);
+    }
+  }, [ws]);
 
   const fetchWallets = async () => {
     try {
