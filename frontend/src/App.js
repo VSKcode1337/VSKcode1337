@@ -14,6 +14,27 @@ import { Toaster } from './components/ui/sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Navigation Button Component
+const NavButton = ({ href, label }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const isActive = location.pathname === href;
+  
+  return (
+    <button
+      onClick={() => navigate(href)}
+      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+        isActive 
+          ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' 
+          : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+      }`}
+      data-testid={`nav-${href.replace('/', '') || 'dashboard'}`}
+    >
+      {label}
+    </button>
+  );
+};
+
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [botStatus, setBotStatus] = useState({
