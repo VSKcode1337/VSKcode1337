@@ -322,8 +322,16 @@ async def get_detected_pairs():
 
 @api_router.get("/stats", response_model=TradingStats)
 async def get_trading_stats():
+    # Get the actual count of detected pairs from database
+    total_pairs_detected = await db.detected_pairs.count_documents({})
+    
     stats = await db.trading_stats.find_one({}) or TradingStats().dict()
-    return TradingStats(**stats)
+    stats_obj = TradingStats(**stats)
+    
+    # Override with actual count from database
+    stats_obj.pairs_detected = total_pairs_detected
+    
+    return stats_obj
 
 @api_router.delete("/wallets/{wallet_id}")
 async def delete_wallet(wallet_id: str):
