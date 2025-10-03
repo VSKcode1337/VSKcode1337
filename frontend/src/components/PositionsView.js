@@ -15,6 +15,7 @@ const PositionsView = ({ ws, selectedWalletId }) => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [closingPosition, setClosingPosition] = useState(null);
+  const [tradingConfig, setTradingConfig] = useState(null);
 
   useEffect(() => {
     fetchPositions();
