@@ -417,8 +417,15 @@ const WalletManager = () => {
                         </AlertDialogCancel>
                         <AlertDialogAction 
                           className="bg-red-600 hover:bg-red-700"
-                          onClick={() => {
-                            toast.success('Wallet deleted (demo)');
+                          onClick={async () => {
+                            try {
+                              await axios.delete(`${API}/wallets/${wallet.id}`);
+                              toast.success('Wallet deleted successfully!');
+                              await fetchWallets(); // Refresh the wallet list
+                            } catch (error) {
+                              console.error('Failed to delete wallet:', error);
+                              toast.error('Failed to delete wallet');
+                            }
                           }}
                         >
                           Delete Wallet
