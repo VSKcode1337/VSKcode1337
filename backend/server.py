@@ -722,12 +722,13 @@ async def start_pair_monitoring():
             await asyncio.sleep(10)
 
 async def check_auto_close_conditions(position, current_price, unrealized_pnl_percent):
-    """Check if position should be auto-closed based on trading rules"""
+    """Check if position should be auto-closed based on CURRENT trading rules"""
     try:
-        # Get trading configuration
+        # Get CURRENT trading configuration (refresh every check)
         config = await db.trading_config.find_one({"is_active": True})
         if not config:
-            return
+            logger.warning("No active trading config found for auto-close check")
+            return False
         
         position_id = position["id"]
         
@@ -752,34 +753,43 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
         should_close = False
         close_reason = ""
         
-        logger.info(f"🕐 Position {position.get('token_symbol')} age: {position_age_minutes:.1f} minutes")
-        
-        # 1. Time-based exit check (PRIORITY: Apply to ALL positions including old ones)
+        # Log config being used for transparency
         max_time = config.get("max_position_time_minutes", 90)
+        stop_loss = config.get("stop_loss_percent", 50)
+        
+        logger.info(f"🕐 Position {position.get('token_symbol')} age: {position_age_minutes:.1f}min (max: {max_time}min, stop_loss: {stop_loss}%)")
+        
+        # 1. Time-based exit check (PRIORITY: Apply current config to ALL positions)
         if position_age_minutes >= max_time:
             should_close = True
-            close_reason = f"Time limit reached ({max_time} minutes, actual: {position_age_minutes:.1f})"
+            close_reason = f"Time limit reached (config: {max_time}min, actual: {position_age_minutes:.1f}min)"
             logger.info(f"⏰ Position {position.get('token_symbol')} auto-closing: {close_reason}")
         
-        # 2. Stop loss check
-        stop_loss_percent = config.get("stop_loss_percent", 50)
-        if stop_loss_percent > 0 and unrealized_pnl_percent <= -stop_loss_percent:
+        # 2. Stop loss check (use current config)
+        if stop_loss > 0 and unrealized_pnl_percent <= -stop_loss:
             should_close = True
-            close_reason = f"Stop loss triggered (-{stop_loss_percent}%, actual: {unrealized_pnl_percent:.1f}%)"
+            close_reason = f"Stop loss triggered (config: -{stop_loss}%, actual: {unrealized_pnl_percent:.1f}%)"
             logger.info(f"🛑 Position {position.get('token_symbol')} auto-closing: {close_reason}")
         
-        # 3. Take profit checks
+        # 3. Take profit checks (use current config)
         take_profit_targets = config.get("take_profit_targets", [])
+        take_profit_percentages = config.get("take_profit_percentages", [])
+        
         for i, target_multiplier in enumerate(take_profit_targets):
+            if target_multiplier <= 1:  # Skip invalid targets
+                continue
+                
             target_percent = (target_multiplier - 1) * 100  # Convert 10x to 900%
             if unrealized_pnl_percent >= target_percent:
+                # Calculate how much to sell (use percentage from config)
+                sell_percentage = take_profit_percentages[i] if i < len(take_profit_percentages) else 100
                 should_close = True
-                close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%, actual: +{unrealized_pnl_percent:.1f}%)"
+                close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%, actual: +{unrealized_pnl_percent:.1f}%) - Selling {sell_percentage}%"
                 logger.info(f"💰 Position {position.get('token_symbol')} auto-closing: {close_reason}")
                 break
         
         if should_close:
-            # Auto-close the position
+            # Auto-close the position using current config
             await auto_close_position(position_id, close_reason, current_price)
             return True
         
