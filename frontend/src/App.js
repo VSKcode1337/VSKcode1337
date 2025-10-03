@@ -335,21 +335,21 @@ const AppContent = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center justify-center">
               <div className="flex space-x-1">
-                <NavButton href="/" label="📊 Dashboard" />
-                <NavButton href="/sniper" label="⚡ Sniper Control" />
-                <NavButton href="/positions" label="💼 Positions" />
-                <NavButton href="/config" label="⚙️ Configuration" />
-                <NavButton href="/wallets" label="👛 Wallets" />
+                <NavButton href="/" label="Dashboard" icon={LayoutDashboard} />
+                <NavButton href="/sniper" label="Paradox Control" icon={Zap} />
+                <NavButton href="/positions" label="Positions" icon={Briefcase} />
+                <NavButton href="/config" label="Configuration" icon={Settings} />
+                <NavButton href="/wallets" label="Wallets" icon={Wallet} />
               </div>
             </div>
             
             {/* Mobile Navigation */}
             <div className="flex md:hidden flex-wrap gap-2 justify-center">
-              <NavButton href="/" label="📊" mobileLabel="Dashboard" />
-              <NavButton href="/sniper" label="⚡" mobileLabel="Sniper" />
-              <NavButton href="/positions" label="💼" mobileLabel="Positions" />
-              <NavButton href="/config" label="⚙️" mobileLabel="Config" />
-              <NavButton href="/wallets" label="👛" mobileLabel="Wallets" />
+              <NavButton href="/" label="Dashboard" mobileLabel="Dashboard" icon={LayoutDashboard} />
+              <NavButton href="/sniper" label="Paradox" mobileLabel="Paradox" icon={Zap} />
+              <NavButton href="/positions" label="Positions" mobileLabel="Positions" icon={Briefcase} />
+              <NavButton href="/config" label="Config" mobileLabel="Config" icon={Settings} />
+              <NavButton href="/wallets" label="Wallets" mobileLabel="Wallets" icon={Wallet} />
             </div>
           </div>
         </nav>
