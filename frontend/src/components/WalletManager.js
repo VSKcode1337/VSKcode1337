@@ -133,9 +133,9 @@ const WalletManager = ({ ws }) => {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-full overflow-x-hidden px-2 md:px-0">
       {/* Header */}
-      <Card className="glass border-gray-700">
+      <Card className="glass border-gray-700 max-w-full overflow-hidden">
         <CardHeader>
           {/* Mobile & Desktop Header */}
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
