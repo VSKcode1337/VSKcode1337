@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { LayoutDashboard, Zap, Briefcase, Settings, Wallet } from 'lucide-react';
+import { toast } from 'sonner';
 import '@/App.css';
 
 // Components
