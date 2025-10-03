@@ -137,18 +137,20 @@ const WalletManager = ({ ws }) => {
       {/* Header */}
       <Card className="glass border-gray-700">
         <CardHeader>
-          <div className="flex items-center justify-between">
+          {/* Mobile & Desktop Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <CardTitle className="text-xl text-white flex items-center gap-2">
+              <CardTitle className="text-lg md:text-xl text-white flex items-center gap-2">
                 <Wallet className="h-5 w-5 text-blue-400" />
                 Wallet Management
               </CardTitle>
-              <CardDescription className="text-gray-400">
-                Manage trading wallets and monitor balances across multiple accounts
+              <CardDescription className="text-sm text-gray-400 mt-1">
+                Manage trading wallets and monitor balances
               </CardDescription>
             </div>
             
-            <div className="flex gap-2">
+            {/* Buttons - Stack on mobile, inline on desktop */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
               <Button 
                 onClick={async () => {
                   try {
@@ -165,7 +167,7 @@ const WalletManager = ({ ws }) => {
                   }
                 }}
                 variant="outline"
-                className="border-green-500 text-green-400 hover:bg-green-500/10"
+                className="border-green-500 text-green-400 hover:bg-green-500/10 w-full sm:w-auto text-sm"
                 data-testid="add-demo-wallet-btn"
               >
                 🎮 Add Demo Wallet
@@ -173,7 +175,7 @@ const WalletManager = ({ ws }) => {
               
               <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
                 <DialogTrigger asChild>
-                  <Button className="btn-primary" data-testid="add-wallet-btn">
+                  <Button className="btn-primary w-full sm:w-auto text-sm" data-testid="add-wallet-btn">
                     <Plus className="h-4 w-4 mr-2" />
                     Add Real Wallet
                   </Button>
