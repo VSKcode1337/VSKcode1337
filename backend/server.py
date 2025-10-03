@@ -1351,7 +1351,32 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
         )
         
         if tx_hash:
-            # Create REAL position with actual transaction hash
+            # Wait for transaction confirmation and calculate actual tokens received
+            try:
+                # Wait for transaction receipt
+                w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+                receipt = w3.eth.wait_for_transaction_receipt(tx_hash, timeout=300)
+                
+                if receipt.status == 1:  # Success
+                    # Calculate actual tokens received from transaction logs
+                    actual_tokens_received = await calculate_tokens_from_receipt(
+                        w3, receipt, detected_pair.token_address, account.address
+                    )
+                    
+                    # Calculate real entry price based on actual tokens
+                    real_entry_price = trade_amount_usd / actual_tokens_received if actual_tokens_received > 0 else 0
+                    
+                    logger.info(f"💰 REAL TOKENS RECEIVED: {actual_tokens_received:.2f} {detected_pair.token_symbol} @ ${real_entry_price:.8f} each")
+                else:
+                    logger.error(f"Transaction failed: {tx_hash}")
+                    return
+                    
+            except Exception as e:
+                logger.error(f"Error processing transaction receipt: {e}")
+                actual_tokens_received = 0
+                real_entry_price = 0
+            
+            # Create REAL position with actual transaction data
             real_position = Position(
                 wallet_id=wallet['id'],
                 token_address=detected_pair.token_address,
@@ -1360,10 +1385,10 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
                 pair_address=detected_pair.pair_address,
                 entry_amount_bnb=trade_amount_bnb,
                 entry_amount_usd=trade_amount_usd,
-                entry_price=0.0,  # Will be calculated from actual transaction
-                current_price=0.0,
+                entry_price=real_entry_price,  # Real price based on actual tokens received
+                current_price=real_entry_price,
                 current_value_usd=trade_amount_usd,
-                tokens_held=0.0,  # Will be calculated from transaction receipt
+                tokens_held=actual_tokens_received,  # REAL tokens from blockchain
                 entry_time=datetime.now(timezone.utc),
                 status="open",
                 unrealized_pnl_usd=0.0,
