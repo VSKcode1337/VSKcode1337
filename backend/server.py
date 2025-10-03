@@ -402,6 +402,50 @@ async def close_position(position_id: str):
     else:
         raise HTTPException(status_code=400, detail="Position is already closed")
 
+@api_router.post("/positions/close-all")
+async def close_all_positions():
+    # Find all open positions
+    open_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(100)
+    
+    if not open_positions:
+        return {"message": "No open positions to close", "closed_count": 0}
+    
+    closed_count = 0
+    total_pnl = 0.0
+    
+    for position in open_positions:
+        # Close each position
+        await db.positions.update_one(
+            {"id": position["id"]},
+            {
+                "$set": {
+                    "status": "closed",
+                    "exit_time": datetime.now(timezone.utc).isoformat(),
+                    "realized_pnl_usd": position.get("unrealized_pnl_usd", 0),
+                    "tokens_sold": position.get("tokens_held", 0)
+                }
+            }
+        )
+        closed_count += 1
+        total_pnl += position.get("unrealized_pnl_usd", 0)
+    
+    # Broadcast bulk close to connected clients
+    await bot_state.broadcast_to_clients({
+        "type": "positions_bulk_closed",
+        "data": {
+            "closed_count": closed_count,
+            "total_realized_pnl": total_pnl
+        }
+    })
+    
+    logger.info(f"Closed {closed_count} positions manually - Total PnL: ${total_pnl:.2f}")
+    
+    return {
+        "message": f"Successfully closed {closed_count} positions",
+        "closed_count": closed_count,
+        "total_realized_pnl": total_pnl
+    }
+
 # ==================== WEBSOCKET ====================
 
 @app.websocket("/ws")
