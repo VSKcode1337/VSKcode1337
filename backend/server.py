@@ -760,17 +760,80 @@ async def sync_position_real_data(position_id: str):
         logger.error(f"Error syncing position {position_id}: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@api_router.post("/wallets/clear-all")
-async def clear_all_wallets():
-    """Delete ALL wallets from database"""
+@api_router.post("/positions/{position_id}/sell-tokens-to-bnb")
+async def sell_tokens_to_bnb(position_id: str):
+    """EMERGENCY: Sell real tokens back to BNB via PancakeSwap"""
     try:
-        result = await db.wallets.delete_many({})
-        logger.info(f"🗑️ Cleared {result.deleted_count} wallets from database")
-        return {"message": f"Successfully deleted {result.deleted_count} wallets"}
+        # Get position details
+        position = await db.positions.find_one({"id": position_id})
+        if not position:
+            raise HTTPException(status_code=404, detail="Position not found")
+        
+        # Get wallet with private key
+        wallet_id = position.get("wallet_id")
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet or not wallet.get("private_key"):
+            raise HTTPException(status_code=400, detail="No wallet private key found")
+        
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        
+        from eth_account import Account
+        account = Account.from_key(wallet['private_key'])
+        token_address = position.get("token_address")
+        
+        # Get current token balance
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
+        )
+        
+        token_balance_wei = token_contract.functions.balanceOf(account.address).call()
+        decimals = token_contract.functions.decimals().call()
+        actual_tokens = token_balance_wei / (10 ** decimals)
+        
+        if actual_tokens <= 0:
+            return {"message": "No tokens to sell", "token_balance": 0}
+        
+        logger.info(f"🔄 SELLING {actual_tokens:.2f} {position.get('token_symbol')} tokens back to BNB...")
+        
+        # Execute REAL sell transaction on PancakeSwap
+        config = await db.trading_config.find_one({"is_active": True})
+        sell_tx_hash = await execute_real_pancakeswap_sell(
+            w3, account, token_address, actual_tokens, config or {}
+        )
+        
+        if sell_tx_hash:
+            # Update position as sold
+            await db.positions.update_one(
+                {"id": position_id},
+                {
+                    "$set": {
+                        "exit_tx_hashes": [sell_tx_hash],
+                        "exit_time": datetime.now(timezone.utc),
+                        "status": "closed",
+                        "notes": f"Real tokens sold back to BNB - TX: {sell_tx_hash}"
+                    }
+                }
+            )
+            
+            logger.info(f"💰 REAL SELL EXECUTED: {sell_tx_hash}")
+            logger.info(f"🔗 View on BSCScan: https://bscscan.com/tx/{sell_tx_hash}")
+            
+            return {
+                "message": f"Successfully sold {actual_tokens:.2f} {position.get('token_symbol')} tokens",
+                "sell_tx_hash": sell_tx_hash,
+                "bscscan_url": f"https://bscscan.com/tx/{sell_tx_hash}",
+                "tokens_sold": actual_tokens
+            }
+        else:
+            raise HTTPException(status_code=500, detail="Sell transaction failed")
         
     except Exception as e:
-        logger.error(f"Error clearing all wallets: {e}")
-        raise HTTPException(status_code=500, detail="Failed to clear wallets")
+        logger.error(f"Error selling tokens for position {position_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 async def delete_wallet(wallet_id: str):
     """Delete wallet from database"""
     try:
