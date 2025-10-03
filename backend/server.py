@@ -55,6 +55,14 @@ class WalletConfig(BaseModel):
     balance_bnb: float = 0.0
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class WalletResponse(BaseModel):
+    id: str
+    name: str
+    address: str
+    is_active: bool = True
+    balance_bnb: float = 0.0
+    created_at: datetime
+
 class TradingConfig(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     trade_amount_usd: float = 50.0
