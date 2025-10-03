@@ -26,6 +26,7 @@ const RiskBadge = ({ level }) => {
 };
 
 const ParadoxControl = ({ botStatus }) => {
+  const navigate = useNavigate();
   const [config, setConfig] = useState(null);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
