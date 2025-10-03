@@ -40,16 +40,13 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     }
   }, [botStatus.last_updated]);
 
-  // Real-time pairs counter based on detected pairs feed
+  // Real-time pairs counter - simple increment
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Count pairs based on the live feed + base count
-      const livePairsTotal = (stats.pairs_detected || 50) + detectedPairs.length;
-      setLivePairsCount(livePairsTotal);
-    }, 1000);
-    
-    return () => clearInterval(interval);
-  }, [detectedPairs, stats.pairs_detected]);
+    // Initialize with current detected pairs length if available
+    if (detectedPairs.length > 0) {
+      setLivePairsCount(50 + detectedPairs.length);
+    }
+  }, [detectedPairs.length]);
 
   useEffect(() => {
     if (ws) {
