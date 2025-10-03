@@ -779,10 +779,20 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
             if target_multiplier <= 1:  # Skip invalid targets
                 continue
                 
-            target_percent = (target_multiplier - 1) * 100  # Convert 10x to 900%
+            target_percent = (target_multiplier - 1) * 100  # Convert 2x to 100%, 4x to 300%
             if unrealized_pnl_percent >= target_percent:
                 # Calculate how much to sell (use percentage from config)
                 sell_percentage = take_profit_percentages[i] if i < len(take_profit_percentages) else 100
+                
+                # Record which TP level was hit
+                current_tps_hit = position.get("take_profits_hit", [])
+                if target_multiplier not in current_tps_hit:
+                    current_tps_hit.append(target_multiplier)
+                    await db.positions.update_one(
+                        {"id": position_id},
+                        {"$set": {"take_profits_hit": current_tps_hit}}
+                    )
+                
                 should_close = True
                 close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%, actual: +{unrealized_pnl_percent:.1f}%) - Selling {sell_percentage}%"
                 logger.info(f"💰 Position {position.get('token_symbol')} auto-closing: {close_reason}")
