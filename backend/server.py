@@ -1434,8 +1434,13 @@ async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, c
         # Sign transaction with real private key
         signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
         
-        # SEND REAL TRANSACTION TO BLOCKCHAIN
-        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        # SEND REAL TRANSACTION TO BLOCKCHAIN (fix for Web3.py v6+)
+        if hasattr(signed_txn, 'rawTransaction'):
+            raw_transaction = signed_txn.rawTransaction
+        else:
+            raw_transaction = signed_txn.raw_transaction  # Web3.py v6+ syntax
+            
+        tx_hash = w3.eth.send_raw_transaction(raw_transaction)
         tx_hash_hex = tx_hash.hex()
         
         logger.info(f"🔥 REAL TRANSACTION SENT: {tx_hash_hex}")
