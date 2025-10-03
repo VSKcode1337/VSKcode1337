@@ -536,12 +536,12 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Pairs Detected</span>
-                  <span className="text-white font-semibold">{Math.max(stats.pairs_detected || 0, livePairsCount)} total</span>
+                  <span className="text-white font-semibold">{stats.pairs_detected || 0} total</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Detection Rate</span>
                   <span className="text-white font-semibold">
-                    {(((stats.pairs_traded || 0) / Math.max(Math.max(stats.pairs_detected || 0, livePairsCount), 1)) * 100).toFixed(1)}%
+                    {(((stats.pairs_traded || 0) / Math.max(stats.pairs_detected || 1, 1)) * 100).toFixed(1)}%
                   </span>
                 </div>
               </CardContent>
