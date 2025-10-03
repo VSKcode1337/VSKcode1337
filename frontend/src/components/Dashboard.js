@@ -134,15 +134,15 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         losing_trades: totalTrades - winningTrades,
         total_trades: totalTrades,
         win_rate_percent: winRate,
-        pairs_detected: detectedPairs.length,  // Sync with actual detected pairs
+        // Keep pairs_detected from backend (it has the real count from DB)
         pairs_traded: totalTrades
       };
       
       setPositions(positionsWithWallets);
       setDetectedPairs(pairsRes.data);
       setStats(calculatedStats);
-      // Initialize total pairs detected from database
-      setTotalPairsDetected(detectedPairs.length);
+      // Initialize total pairs detected from backend stats (real DB count)
+      setTotalPairsDetected(statsRes.data.pairs_detected || 0);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       toast.error('Failed to load dashboard data');
