@@ -190,6 +190,16 @@ const AppContent = () => {
               </div>
               
               <div className="flex items-center space-x-6">
+                {/* Current Time */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-300">
+                    London: {new Date().toLocaleTimeString('en-GB', { 
+                      timeZone: 'Europe/London',
+                      hour12: false 
+                    })}
+                  </span>
+                </div>
+                
                 {/* WebSocket Status */}
                 <div className="flex items-center space-x-2">
                   <div className={`w-3 h-3 rounded-full ${
