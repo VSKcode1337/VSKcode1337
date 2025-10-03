@@ -1599,7 +1599,6 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
         )
         
         if tx_hash:
-        if tx_hash:
             # Calculate REAL tokens from transaction (simplified for now)
             tokens_received = 1000.0  # Placeholder - will calculate from transaction
             real_entry_price = trade_amount_usd / tokens_received
