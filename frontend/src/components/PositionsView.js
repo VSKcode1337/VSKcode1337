@@ -115,26 +115,32 @@ const PositionsView = ({ ws, selectedWalletId }) => {
 
   const calculateTimeHeld = (entryTime, exitTime = null) => {
     try {
-      // Force UTC parsing to avoid timezone issues
-      const now = new Date();
-      const entryDate = new Date(entryTime);
-      const exitDate = exitTime ? new Date(exitTime) : now;
+      // Get current time or exit time
+      const endTime = exitTime ? exitTime : new Date().toISOString();
       
-      // Calculate age in minutes from entry to now/exit
-      const ageMs = exitDate.getTime() - entryDate.getTime();
+      // Parse both times as UTC to avoid timezone confusion
+      const startMs = Date.parse(entryTime);
+      const endMs = Date.parse(endTime);
       
-      if (ageMs < 0) return "0m";
+      // Calculate pure millisecond difference
+      const diffMs = endMs - startMs;
       
-      const totalMinutes = Math.floor(ageMs / (1000 * 60));
+      if (diffMs < 0) return "0m";
+      
+      // Convert to minutes/hours/days
+      const totalMinutes = Math.floor(diffMs / (1000 * 60));
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
       const days = Math.floor(hours / 24);
+      
+      // Debug log to verify calculation
+      console.log(`Time calc: ${entryTime} -> ${endTime} = ${totalMinutes}m total`);
       
       if (days > 0) return `${days}d ${hours % 24}h`;
       if (hours > 0) return `${hours}h ${minutes}m`;
       return `${totalMinutes}m`;
     } catch (error) {
-      console.error('Error calculating time held:', error, {entryTime, exitTime});
+      console.error('Time calculation error:', error, {entryTime, exitTime});
       return "0m";
     }
   };
