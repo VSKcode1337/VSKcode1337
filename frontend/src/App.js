@@ -365,7 +365,7 @@ const AppContent = () => {
           <Route path="/sniper" element={<SniperControl botStatus={botStatus} />} />
           <Route path="/positions" element={<PositionsView ws={ws} />} />
           <Route path="/config" element={<ConfigPanel />} />
-          <Route path="/wallets" element={<WalletManager />} />
+          <Route path="/wallets" element={<WalletManager ws={ws} />} />
         </Routes>
       </div>
       
