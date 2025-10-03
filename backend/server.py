@@ -206,7 +206,7 @@ class BotState:
             for client in self.connected_clients:
                 try:
                     await client.send_text(json.dumps(message))
-                except:
+                except Exception:
                     disconnected.add(client)
             
             # Remove disconnected clients
