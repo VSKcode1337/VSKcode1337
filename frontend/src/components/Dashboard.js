@@ -452,14 +452,15 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                       
                       <div className="flex items-center justify-between md:space-x-4 text-xs md:text-sm gap-2 flex-wrap">
                         <div className="text-center min-w-0">
+                          <div className="text-gray-500 text-xs mb-1">Liquidity</div>
                           <div className="text-white font-semibold text-xs md:text-sm">${pair.liquidity_usd?.toLocaleString()}</div>
-                          <div className="text-gray-400 text-xs">Liquidity</div>
                         </div>
                         <div className="text-center min-w-0">
-                          <div className="text-white font-semibold text-xs md:text-sm">{pair.wbnb_reserves?.toFixed(2)} BNB</div>
-                          <div className="text-gray-400 text-xs">WBNB Pool</div>
+                          <div className="text-gray-500 text-xs mb-1">WBNB</div>
+                          <div className="text-white font-semibold text-xs md:text-sm">{pair.wbnb_reserves?.toFixed(2)}</div>
                         </div>
                         <div className="text-center min-w-0 flex-shrink-0">
+                          <div className="text-gray-500 text-xs mb-1">Time</div>
                           <div className="text-white font-semibold text-xs md:text-sm whitespace-nowrap">
                             {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
                               timeZone: 'Europe/London',
@@ -485,9 +486,18 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                             })()}
                           </div>
                         </div>
-                        <Badge variant={pair.action_taken === 'bought' ? 'default' : 'secondary'} className="flex-shrink-0 text-xs">
-                          {pair.action_taken?.toUpperCase() || 'NONE'}
-                        </Badge>
+                        <div className="text-center min-w-0 flex-shrink-0">
+                          <div className="text-gray-500 text-xs mb-1">Action</div>
+                          {pair.action_taken === 'bought' ? (
+                            <div className="flex items-center justify-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-xs font-semibold">
+                              ✅ BOUGHT
+                            </div>
+                          ) : (
+                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                              MONITORING
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))
