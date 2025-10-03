@@ -1161,45 +1161,55 @@ async def get_token_info(token_address: str):
         return {"symbol": "UNKNOWN", "name": "Unknown Token", "decimals": 18}
 
 async def get_real_time_token_price(token_address: str):
-    """Get real-time token price from DexScreener API - FAST & ACCURATE"""
+    """Get REAL-TIME token price from DexScreener API - EXACT SAME DATA AS LINKS"""
     try:
+        # Use the EXACT same API that DexScreener links use
         url = f"https://api.dexscreener.com/latest/dex/tokens/{token_address}"
         
         async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=aiohttp.ClientTimeout(total=3)) as response:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=2)) as response:
                 if response.status == 200:
                     data = await response.json()
                     pairs = data.get('pairs')
                     
-                    # Check if pairs exist
                     if not pairs or len(pairs) == 0:
                         return None
                     
-                    # Find the pair with highest liquidity (most accurate)
-                    best_pair = None
+                    # Find PancakeSwap BSC pair (exact same logic as DexScreener website)
+                    pancake_pair = None
                     for pair in pairs:
-                        if pair.get('chainId') == 'bsc' and pair.get('dexId') == 'pancakeswap':
-                            if not best_pair or (pair.get('liquidity', {}).get('usd', 0) > best_pair.get('liquidity', {}).get('usd', 0)):
-                                best_pair = pair
+                        if (pair.get('chainId') == 'bsc' and 
+                            pair.get('dexId') == 'pancakeswap' and
+                            pair.get('priceUsd')):
+                            if not pancake_pair or float(pair.get('liquidity', {}).get('usd', 0)) > float(pancake_pair.get('liquidity', {}).get('usd', 0)):
+                                pancake_pair = pair
                     
-                    if best_pair:
-                        price_usd = float(best_pair.get('priceUsd', '0'))
-                        price_change = float(best_pair.get('priceChange', {}).get('h1', '0') or '0')
-                        liquidity_usd = best_pair.get('liquidity', {}).get('usd', 0)
-                        volume_24h = best_pair.get('volume', {}).get('h24', 0)
+                    if pancake_pair:
+                        # Extract EXACT same data as DexScreener shows
+                        price_usd = float(pancake_pair.get('priceUsd', '0'))
+                        price_change_5m = float(pancake_pair.get('priceChange', {}).get('m5', '0') or '0')
+                        price_change_1h = float(pancake_pair.get('priceChange', {}).get('h1', '0') or '0')
+                        price_change_24h = float(pancake_pair.get('priceChange', {}).get('h24', '0') or '0')
+                        liquidity_usd = float(pancake_pair.get('liquidity', {}).get('usd', 0))
+                        volume_24h = float(pancake_pair.get('volume', {}).get('h24', 0))
+                        
+                        logger.info(f"📊 REAL DEXSCREENER DATA: {token_address} = ${price_usd:.8f} | 5m: {price_change_5m:.2f}% | 1h: {price_change_1h:.2f}%")
                         
                         return {
                             'price_usd': price_usd,
-                            'price_change_1h': price_change,
+                            'price_change_5m': price_change_5m,
+                            'price_change_1h': price_change_1h,
+                            'price_change_24h': price_change_24h,
                             'liquidity_usd': liquidity_usd,
                             'volume_24h': volume_24h,
-                            'source': 'dexscreener_realtime'
+                            'source': 'REAL_DEXSCREENER',
+                            'pair_address': pancake_pair.get('pairAddress')
                         }
                         
         return None
         
     except Exception as e:
-        logger.error(f"Error fetching DexScreener price for {token_address}: {e}")
+        logger.error(f"Error fetching REAL DexScreener data for {token_address}: {e}")
         return None
 
 async def get_pair_info(pair_address: str):
