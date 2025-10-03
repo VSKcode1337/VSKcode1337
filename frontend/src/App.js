@@ -204,11 +204,11 @@ const AppContent = () => {
             {/* Desktop Header */}
             <div className="hidden md:flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
-                  <span className="text-white font-bold text-xl">🎯</span>
+                <div className="w-12 h-12 rounded-xl flex items-center justify-center overflow-hidden">
+                  <img src="/paradox-logo.png" alt="Paradox Bot" className="w-full h-full object-contain" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">PCS Sniper Bot</h1>
+                  <h1 className="text-2xl font-bold text-white">Paradox Bot</h1>
                   <p className="text-gray-400 text-sm">High-Frequency DeFi Trading</p>
                 </div>
               </div>
