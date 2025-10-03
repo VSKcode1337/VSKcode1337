@@ -187,15 +187,6 @@ const AppContent = () => {
     return () => clearInterval(timeInterval);
   }, []);
 
-  // Update current time every second
-  useEffect(() => {
-    const timeInterval = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timeInterval);
-  }, []);
-
   const handleWebSocketMessage = (message) => {
     switch (message.type) {
       case 'connection_established':
