@@ -678,6 +678,87 @@ async def delete_wallet(wallet_id: str):
     except Exception as e:
         logger.error(f"Error deleting wallet {wallet_id}: {e}")
         raise HTTPException(status_code=500, detail="Failed to delete wallet")
+@api_router.post("/positions/{position_id}/sync-real-data")
+async def sync_position_real_data(position_id: str):
+    """Sync position with real blockchain token balance and current price"""
+    try:
+        # Get position
+        position = await db.positions.find_one({"id": position_id})
+        if not position:
+            raise HTTPException(status_code=404, detail="Position not found")
+        
+        # Get wallet
+        wallet_id = position.get("wallet_id")
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet or not wallet.get("private_key"):
+            raise HTTPException(status_code=400, detail="No wallet private key found")
+        
+        # Get RPC config and connect to blockchain
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        
+        from eth_account import Account
+        account = Account.from_key(wallet['private_key'])
+        token_address = position.get("token_address")
+        
+        # Get REAL token balance from blockchain
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
+        )
+        
+        token_balance_wei = token_contract.functions.balanceOf(account.address).call()
+        decimals = token_contract.functions.decimals().call()
+        actual_tokens = token_balance_wei / (10 ** decimals)
+        
+        # Get REAL current price from DexScreener
+        price_data = await get_real_time_token_price(token_address)
+        
+        if price_data and price_data['price_usd'] > 0:
+            current_price_usd = price_data['price_usd']
+        else:
+            # Fallback calculation
+            entry_amount_usd = position.get("entry_amount_usd", 5)
+            current_price_usd = entry_amount_usd / actual_tokens if actual_tokens > 0 else 0
+        
+        # Calculate REAL P&L
+        entry_amount_usd = position.get("entry_amount_usd", 5)
+        entry_price = entry_amount_usd / actual_tokens if actual_tokens > 0 else 0
+        current_value_usd = actual_tokens * current_price_usd
+        
+        unrealized_pnl_usd = current_value_usd - entry_amount_usd
+        unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
+        
+        # Update position with REAL data
+        await db.positions.update_one(
+            {"id": position_id},
+            {
+                "$set": {
+                    "tokens_held": actual_tokens,
+                    "entry_price": entry_price,
+                    "current_price": current_price_usd,
+                    "current_value_usd": current_value_usd,
+                    "unrealized_pnl_usd": unrealized_pnl_usd,
+                    "unrealized_pnl_percent": unrealized_pnl_percent,
+                    "synced_from_blockchain": True,
+                    "last_sync": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        logger.info(f"✅ SYNCED REAL DATA: {position.get('token_symbol')} - {actual_tokens:.2f} tokens, ${current_value_usd:.2f} value, {unrealized_pnl_percent:.1f}% P&L")
+        
+        return {
+            "message": "Position synced with real blockchain data",
+            "token_symbol": position.get("token_symbol"),
+            "actual_tokens": actual_tokens,
+            "current_value_usd": current_value_usd,
+            "unrealized_pnl_percent": unrealized_pnl_percent
+        }
+        
+    except Exception as e:
+        logger.error(f"Error syncing position {position_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/wallets/clear-all")
 async def clear_all_wallets():
