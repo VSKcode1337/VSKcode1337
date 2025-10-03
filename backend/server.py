@@ -290,6 +290,32 @@ async def update_trading_config(config: TradingConfig):
     bot_state.trading_config = config
     return config
 
+@api_router.get("/config/rpc", response_model=RPCConfig)
+async def get_rpc_config():
+    config = await db.rpc_config.find_one({"is_active": True})
+    if not config:
+        # Return default config
+        default_config = RPCConfig()
+        return default_config
+    config.pop('_id', None)
+    return RPCConfig(**config)
+
+@api_router.post("/config/rpc", response_model=RPCConfig)
+async def update_rpc_config(config: RPCConfig):
+    config.updated_at = datetime.now(timezone.utc)
+    await db.rpc_config.replace_one(
+        {"is_active": True},
+        config.dict(),
+        upsert=True
+    )
+    # Update blockchain_config with new settings
+    blockchain_config.bsc_rpc_http = config.bsc_rpc_http
+    blockchain_config.bsc_rpc_ws = config.bsc_rpc_ws
+    blockchain_config.bscscan_api_key = config.bscscan_api_key
+    blockchain_config.w3 = Web3(Web3.HTTPProvider(config.bsc_rpc_http))
+    logger.info(f"RPC configuration updated: HTTP={config.bsc_rpc_http[:50]}...")
+    return config
+
 @api_router.get("/wallets", response_model=List[WalletResponse])
 async def get_wallets():
     wallets = await db.wallets.find({"is_active": True}).to_list(100)
