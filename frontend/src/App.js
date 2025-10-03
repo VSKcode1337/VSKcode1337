@@ -41,6 +41,7 @@ const NavButton = ({ href, label, mobileLabel, icon: Icon }) => {
 // Main App Content Component
 const AppContent = () => {
   const [isConnected, setIsConnected] = useState(false);
+  const [accountMode, setAccountMode] = useState('demo'); // 'demo' or 'real'
   const [botStatus, setBotStatus] = useState({
     is_running: false,
     connected_clients: 0,
