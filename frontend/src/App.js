@@ -246,10 +246,12 @@ const AppContent = () => {
                     <div className={`w-2.5 h-2.5 rounded-full ${
                       isConnected 
                         ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                        : isConnecting
+                        ? 'bg-yellow-500 shadow-lg shadow-yellow-500/50 animate-pulse'
                         : 'bg-red-500 shadow-lg shadow-red-500/50'
                     }`}></div>
                     <span className="text-xs text-gray-300 whitespace-nowrap">
-                      WS: {isConnected ? 'Connected' : 'Error'}
+                      WS: {isConnected ? 'Connected' : isConnecting ? 'Connecting...' : 'Error'}
                     </span>
                   </div>
                   
