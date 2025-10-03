@@ -281,7 +281,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-white">
-              {Math.max(stats.pairs_detected || 0, livePairsCount)}
+              {livePairsCount > 0 ? livePairsCount : (stats.pairs_detected || 50)}
             </div>
             <p className="text-xs text-gray-400 mt-1">
               {stats.pairs_traded || 0} traded ({(((stats.pairs_traded || 0) / Math.max(Math.max(stats.pairs_detected || 0, livePairsCount), 1)) * 100).toFixed(1)}%)
