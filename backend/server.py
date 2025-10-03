@@ -623,7 +623,45 @@ async def check_real_blockchain_balance(wallet_id: str):
         
         logger.info(f"💰 Real balance for {wallet.get('name')} ({address}): {real_balance_bnb:.6f} BNB")
         
+        return {
+            "wallet_name": wallet.get('name'),
+            "address": address,
+            "real_balance_bnb": real_balance_bnb,
+            "demo_balance_bnb": wallet.get('balance_bnb', 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking real balance for wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check real balance")
+
 @api_router.delete("/wallets/{wallet_id}")
+async def delete_wallet(wallet_id: str):
+    """Delete wallet from database"""
+    try:
+        result = await db.wallets.delete_one({"id": wallet_id})
+        if result.deleted_count == 0:
+            raise HTTPException(status_code=404, detail="Wallet not found")
+        
+        logger.info(f"🗑️ Wallet deleted: {wallet_id}")
+        return {"message": "Wallet deleted successfully", "wallet_id": wallet_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete wallet")
+
+@api_router.post("/wallets/clear-all")
+async def clear_all_wallets():
+    """Delete ALL wallets from database"""
+    try:
+        result = await db.wallets.delete_many({})
+        logger.info(f"🗑️ Cleared {result.deleted_count} wallets from database")
+        return {"message": f"Successfully deleted {result.deleted_count} wallets"}
+        
+    except Exception as e:
+        logger.error(f"Error clearing all wallets: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear wallets")
 async def delete_wallet(wallet_id: str):
     """Delete wallet from database"""
     try:
