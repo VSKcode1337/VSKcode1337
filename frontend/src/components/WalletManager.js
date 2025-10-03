@@ -132,13 +132,36 @@ const WalletManager = () => {
               </CardDescription>
             </div>
             
-            <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="btn-primary" data-testid="add-wallet-btn">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Wallet
-                </Button>
-              </DialogTrigger>
+            <div className="flex gap-2">
+              <Button 
+                onClick={async () => {
+                  try {
+                    // Create demo wallet with fake private key
+                    const demoWallet = {
+                      name: `Demo Wallet ${Math.floor(Math.random() * 1000)}`,
+                      private_key: `0x${''.repeat(64).replace(/./g, () => Math.floor(Math.random() * 16).toString(16))}`
+                    };
+                    await axios.post(`${API}/wallets`, demoWallet);
+                    toast.success('Demo wallet created!');
+                    await fetchWallets();
+                  } catch (error) {
+                    toast.error('Failed to create demo wallet');
+                  }
+                }}
+                variant="outline"
+                className="border-green-500 text-green-400 hover:bg-green-500/10"
+                data-testid="add-demo-wallet-btn"
+              >
+                🎮 Add Demo Wallet
+              </Button>
+              
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="btn-primary" data-testid="add-wallet-btn">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Real Wallet
+                  </Button>
+                </DialogTrigger>
               <DialogContent className="bg-gray-900 border-gray-700">
                 <DialogHeader>
                   <DialogTitle className="text-white">Add New Wallet</DialogTitle>
