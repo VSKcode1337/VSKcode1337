@@ -437,7 +437,14 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                     <div key={position.id} className="flex items-center justify-between py-2 border-b border-gray-700 last:border-b-0">
                       <div>
                         <div className="text-white text-sm font-medium">{position.token_symbol}</div>
-                        <div className="text-gray-400 text-xs">{new Date(position.entry_time).toLocaleTimeString()}</div>
+                        <div className="text-gray-400 text-xs">
+                          {new Date(position.entry_time).toLocaleTimeString('en-GB', { 
+                            timeZone: 'Europe/London',
+                            hour12: false,
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })} London
+                        </div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm">{formatPnL(position.unrealized_pnl_usd)}</div>
