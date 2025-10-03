@@ -433,7 +433,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 {detectedPairs.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p>No pairs detected yet. Start the sniper to begin monitoring.</p>
+                    <p>No pairs detected yet. Start the bot to begin monitoring.</p>
                   </div>
                 ) : (
                   detectedPairs.map((pair) => (
