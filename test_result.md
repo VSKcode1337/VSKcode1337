@@ -101,3 +101,114 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Add sliding toggle switches to Paradox configuration and risk sections, fix config button navigation, increase risk limit to 100, fix dashboard controller symbol color, and remove duplicate detection stats from config pages"
+
+backend:
+  - task: "Fix config button navigation endpoint mapping"
+    implemented: false
+    working: "NA"
+    file: "backend/server.py"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: false
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Backend routing appears functional based on frontend code review"
+
+frontend:
+  - task: "Fix Modify Config button navigation"
+    implemented: false
+    working: false
+    file: "frontend/src/components/SniperControl.js"
+    stuck_count: 1
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "User reported config button still redirects incorrectly despite using navigate() method"
+
+  - task: "Increase risk limit input maximum to 100"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/ConfigPanel.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "Need to identify and update max attribute of risk limit input field"
+
+  - task: "Fix dashboard controller symbol color"
+    implemented: false
+    working: false
+    file: "frontend/src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "medium"
+    needs_retesting: true
+    status_history:
+      - working: false
+        agent: "main"
+        comment: "User reported controller symbol has incorrect old color"
+
+  - task: "Add professional sliding toggles to Paradox configuration"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/Dashboard.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User wants iOS-style sliding toggles in dashboard Paradox section and config panel"
+
+  - task: "Add sliding toggles to Risk section"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/ConfigPanel.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User wants sliding toggles for risk management settings"
+
+  - task: "Remove duplicate detection stats from non-dashboard pages"
+    implemented: false
+    working: "NA"
+    file: "frontend/src/components/ConfigPanel.js"
+    stuck_count: 0
+    priority: "low"
+    needs_retesting: true
+    status_history:
+      - working: "NA"
+        agent: "main"
+        comment: "User wants to remove duplicate stats since main dashboard already shows this info"
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 0
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Fix Modify Config button navigation"
+    - "Increase risk limit input maximum to 100"
+    - "Fix dashboard controller symbol color"
+    - "Add professional sliding toggles to Paradox configuration"
+    - "Add sliding toggles to Risk section"
+    - "Remove duplicate detection stats from non-dashboard pages"
+  stuck_tasks:
+    - "Fix Modify Config button navigation"
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Starting implementation of sliding toggle switches and fixing reported issues. Will begin with high-priority fixes first."
