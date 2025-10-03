@@ -279,14 +279,6 @@ async def update_trading_config(config: TradingConfig):
     bot_state.trading_config = config
     return config
 
-class WalletResponse(BaseModel):
-    id: str
-    name: str
-    address: str
-    is_active: bool = True
-    balance_bnb: float = 0.0
-    created_at: datetime
-
 @api_router.get("/wallets", response_model=List[WalletResponse])
 async def get_wallets():
     wallets = await db.wallets.find({"is_active": True}).to_list(100)
