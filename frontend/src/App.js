@@ -164,6 +164,8 @@ const AppContent = () => {
           detected_pairs_today: prev.detected_pairs_today + 1,
           last_updated: Date.now()
         }));
+        // Force immediate dashboard data refresh
+        window.dispatchEvent(new CustomEvent('refreshDashboard'));
         break;
       case 'position_closed':
         console.log('Position closed:', message.data);
