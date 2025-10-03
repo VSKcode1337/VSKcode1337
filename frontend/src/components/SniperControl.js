@@ -248,7 +248,7 @@ const ParadoxControl = ({ botStatus }) => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => window.location.href = '/config'}
+              onClick={() => navigate('/config')}
               className="border-purple-500 text-purple-400 hover:bg-purple-500/10"
             >
               <AlertTriangle className="h-4 w-4 mr-2" />
