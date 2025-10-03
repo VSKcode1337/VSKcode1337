@@ -416,13 +416,26 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         <TabsContent value="live-feed">
           <Card className="glass border-gray-700">
             <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Activity className="h-5 w-5 text-green-400" />
-                Live Pair Detection Feed
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Real-time new token pair discoveries on PancakeSwap
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-400" />
+                    Live Pair Detection Feed
+                  </CardTitle>
+                  <CardDescription className="text-gray-400">
+                    Real-time new token pair discoveries on PancakeSwap
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={resetDetectedPairs}
+                  className="border-red-500 text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                  data-testid="reset-pairs-btn"
+                >
+                  🗑️ Reset Pairs
+                </Button>
+              </div>
             </CardHeader>
             <CardContent className="overflow-x-hidden">
               <div className="space-y-3 max-h-96 overflow-y-auto overflow-x-hidden">
