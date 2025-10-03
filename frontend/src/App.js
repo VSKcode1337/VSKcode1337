@@ -121,14 +121,18 @@ const AppContent = () => {
     const fetchStatus = async () => {
       try {
         const response = await axios.get(`${API}/status`);
+        console.log('Bot status updated:', response.data);
         setBotStatus(response.data);
       } catch (error) {
         console.error('Failed to fetch bot status:', error);
       }
     };
 
+    // Fetch immediately on mount
     fetchStatus();
-    const interval = setInterval(fetchStatus, 10000); // Update every 10 seconds
+    
+    // Then fetch every 10 seconds
+    const interval = setInterval(fetchStatus, 10000);
 
     return () => clearInterval(interval);
   }, []);
