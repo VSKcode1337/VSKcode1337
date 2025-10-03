@@ -1,0 +1,22 @@
+<svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Outer hexagon -->
+  <path d="M24 4L40 14V34L24 44L8 34V14L24 4Z" stroke="url(#grad1)" stroke-width="2" fill="none"/>
+  
+  <!-- Inner shape - abstract P for Paradox -->
+  <path d="M18 16H26C29 16 31 18 31 21C31 24 29 26 26 26H22V32" stroke="url(#grad2)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Accent dot -->
+  <circle cx="32" cy="32" r="2" fill="#60A5FA"/>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="grad1" x1="8" y1="4" x2="40" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="grad2" x1="18" y1="16" x2="31" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#60A5FA"/>
+      <stop offset="100%" stop-color="#A78BFA"/>
+    </linearGradient>
+  </defs>
+</svg>
