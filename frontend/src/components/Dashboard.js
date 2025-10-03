@@ -32,6 +32,13 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Refresh when botStatus updates (including position changes)
+  useEffect(() => {
+    if (botStatus.last_updated) {
+      fetchDashboardData();
+    }
+  }, [botStatus.last_updated]);
+
   useEffect(() => {
     if (ws) {
       const handleMessage = (event) => {
