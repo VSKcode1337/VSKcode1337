@@ -164,15 +164,15 @@ const AppContent = () => {
               </div>
               
               <div className="flex items-center space-x-6">
-                {/* Connection Status */}
+                {/* WebSocket Status */}
                 <div className="flex items-center space-x-2">
                   <div className={`w-3 h-3 rounded-full ${
-                    isConnected && botStatus.blockchain_connected 
+                    isConnected 
                       ? 'bg-green-500 animate-pulse' 
                       : 'bg-red-500'
                   }`}></div>
                   <span className="text-sm text-gray-300">
-                    {isConnected && botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
+                    WebSocket: {isConnected ? 'Connected' : 'Disconnected'}
                   </span>
                   {!isConnected && (
                     <button 
@@ -182,6 +182,18 @@ const AppContent = () => {
                       Reconnect
                     </button>
                   )}
+                </div>
+                
+                {/* Blockchain Status */}
+                <div className="flex items-center space-x-2">
+                  <div className={`w-3 h-3 rounded-full ${
+                    botStatus.blockchain_connected 
+                      ? 'bg-green-500 animate-pulse' 
+                      : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-sm text-gray-300">
+                    Blockchain: {botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
+                  </span>
                 </div>
                 
                 {/* Bot Status */}
