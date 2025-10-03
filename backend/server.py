@@ -862,17 +862,19 @@ async def update_position_prices():
                     )
                     
                     # Check for auto-close conditions
-                    await check_auto_close_conditions(position, new_price, unrealized_pnl_percent)
+                    was_closed = await check_auto_close_conditions(position, new_price, unrealized_pnl_percent)
                     
-                    # Add to broadcast list
-                    updated_positions.append({
-                        "id": position["id"],
-                        "token_symbol": position.get("token_symbol", ""),
-                        "current_price": new_price,
-                        "current_value_usd": new_value_usd,
-                        "unrealized_pnl_usd": unrealized_pnl_usd,
-                        "unrealized_pnl_percent": unrealized_pnl_percent
-                    })
+                    # Only add to broadcast if position wasn't closed
+                    if not was_closed:
+                        # Add to broadcast list
+                        updated_positions.append({
+                            "id": position["id"],
+                            "token_symbol": position.get("token_symbol", ""),
+                            "current_price": new_price,
+                            "current_value_usd": new_value_usd,
+                            "unrealized_pnl_usd": unrealized_pnl_usd,
+                            "unrealized_pnl_percent": unrealized_pnl_percent
+                        })
                     
                 except Exception as e:
                     logger.error(f"Error updating position {position.get('id')}: {e}")
