@@ -1872,6 +1872,10 @@ async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, c
         logger.error(f"REAL transaction failed: {e}")
         return None
 
+async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount, config):
+    """Calls the bulletproof sell function"""
+    return await execute_bulletproof_pancakeswap_sell(w3, account, token_address, token_amount, config)
+
 async def execute_bulletproof_pancakeswap_sell(w3, account, token_address, token_amount, config):
     """BULLETPROOF sell function with maximum success rate"""
     try:
