@@ -197,7 +197,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
   const stopSniper = async () => {
     try {
       await axios.post(`${API}/sniper/stop`);
-      toast.success('Sniper bot stopped');
+      toast.success('Paradox bot stopped');
     } catch (error) {
       toast.error('Failed to stop sniper bot');
     }
