@@ -1749,9 +1749,16 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
             'chainId': 56
         })
         
-        # Sign and send real sell transaction
+        # Sign and send real sell transaction (fix for Web3.py v6+)
         signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
-        tx_hash = w3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        
+        # Fix for different Web3.py versions
+        if hasattr(signed_txn, 'rawTransaction'):
+            raw_transaction = signed_txn.rawTransaction
+        else:
+            raw_transaction = signed_txn.raw_transaction
+            
+        tx_hash = w3.eth.send_raw_transaction(raw_transaction)
         tx_hash_hex = tx_hash.hex()
         
         logger.info(f"💰 REAL SELL SENT: {tx_hash_hex}")
