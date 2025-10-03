@@ -14,8 +14,8 @@ import { Toaster } from './components/ui/sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Navigation Button Component
-const NavButton = ({ href, label }) => {
+// Navigation Button Component - Mobile Responsive
+const NavButton = ({ href, label, mobileLabel }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isActive = location.pathname === href;
@@ -23,14 +23,16 @@ const NavButton = ({ href, label }) => {
   return (
     <button
       onClick={() => navigate(href)}
-      className={`px-6 py-3 rounded-xl font-medium transition-all duration-200 ${
+      className={`px-3 md:px-6 py-2 md:py-3 rounded-xl font-medium transition-all duration-200 text-sm md:text-base flex flex-col md:flex-row items-center gap-1 md:gap-0 ${
         isActive 
           ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25' 
           : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
       }`}
       data-testid={`nav-${href.replace('/', '') || 'dashboard'}`}
     >
-      {label}
+      <span className="text-base md:text-lg">{label.split(' ')[0]}</span>
+      <span className="hidden md:inline">{label.split(' ').slice(1).join(' ')}</span>
+      <span className="text-xs md:hidden">{mobileLabel}</span>
     </button>
   );
 };
