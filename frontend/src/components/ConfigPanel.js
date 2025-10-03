@@ -7,7 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
 import { Badge } from './ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
-import { Settings, Key, Shield, AlertTriangle, Server, Database } from 'lucide-react';
+import { Settings, Key, Shield, AlertTriangle, Server, Database, TrendingUp } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
