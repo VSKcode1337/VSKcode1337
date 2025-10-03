@@ -41,6 +41,7 @@ const ConfigPanel = () => {
 
   useEffect(() => {
     fetchConfig();
+    fetchRpcConfig();
   }, []);
 
   const fetchConfig = async () => {
@@ -55,6 +56,15 @@ const ConfigPanel = () => {
     }
   };
 
+  const fetchRpcConfig = async () => {
+    try {
+      const response = await axios.get(`${API}/config/rpc`);
+      setRpcConfig(response.data);
+    } catch (error) {
+      console.error('Failed to fetch RPC config:', error);
+    }
+  };
+
   const saveConfig = async () => {
     setSaving(true);
     try {
@@ -63,6 +73,19 @@ const ConfigPanel = () => {
     } catch (error) {
       console.error('Failed to save config:', error);
       toast.error('Failed to save configuration');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const saveRpcConfig = async () => {
+    setSaving(true);
+    try {
+      await axios.post(`${API}/config/rpc`, rpcConfig);
+      toast.success('RPC configuration saved successfully!');
+    } catch (error) {
+      console.error('Failed to save RPC config:', error);
+      toast.error('Failed to save RPC configuration');
     } finally {
       setSaving(false);
     }
