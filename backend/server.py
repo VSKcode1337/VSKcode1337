@@ -964,23 +964,24 @@ async def update_position_prices():
                     logger.error(f"Error updating position {position.get('id')}: {e}")
                     continue
             
-            # Broadcast real-time updates to connected clients
+            # Broadcast REAL price updates to frontend
             if updated_positions:
                 await bot_state.broadcast_to_clients({
                     "type": "positions_updated",
                     "data": {
                         "positions": updated_positions,
                         "count": len(updated_positions),
-                        "update_source": "realtime_dexscreener"
+                        "update_source": "REAL_PANCAKESWAP_DATA",
+                        "update_time": datetime.now(timezone.utc).isoformat()
                     }
                 })
             
-            # Update every 2 seconds for faster real-time updates (instead of 10 seconds)
-            await asyncio.sleep(2)
+            # Update every 500ms for REAL-TIME millisecond accuracy
+            await asyncio.sleep(0.5)
             
         except Exception as e:
-            logger.error(f"Error updating position prices: {e}")
-            await asyncio.sleep(5)
+            logger.error(f"Error updating REAL prices: {e}")
+            await asyncio.sleep(1)
 
 async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
     """Execute a demo trade for a real detected token"""
