@@ -381,8 +381,12 @@ const ConfigPanel = () => {
                       trade_amount_usd: 50,
                       max_tax_buy_percent: 6,
                       max_tax_sell_percent: 6,
-                      min_liquidity_usd: 25000,
-                      stop_loss_percent: 50
+                      min_liquidity_usd: 50000,
+                      stop_loss_percent: 35,
+                      take_profit_targets: [5, 10, 15],
+                      take_profit_percentages: [50, 30, 20],
+                      max_position_time_minutes: 45,
+                      slippage_tolerance_percent: 10
                     }));
                     toast.info('Applied Balanced preset');
                   }}
