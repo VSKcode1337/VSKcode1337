@@ -290,7 +290,7 @@ const AppContent = () => {
                     <h1 className="text-base font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                       Paradox Bot
                     </h1>
-                    <p className="text-gray-400 text-xs">DeFi Trading</p>
+                    <p className="text-gray-400 text-xs">Smart Trading AI</p>
                   </div>
                 </div>
                 
