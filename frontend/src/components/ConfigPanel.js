@@ -431,6 +431,124 @@ const ConfigPanel = () => {
                   </div>
                 </div>
 
+                {/* Take Profit Configuration */}
+                <div className="border-t border-gray-700 pt-6">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <Target className="h-5 w-5 text-green-400" />
+                    Take Profit Configuration
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-gray-300">Take Profit Targets (Multipliers)</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            placeholder="10"
+                            value={config.take_profit_targets?.[0] || ''}
+                            onChange={(e) => {
+                              const newTargets = [...(config.take_profit_targets || [])];
+                              newTargets[0] = parseInt(e.target.value) || 0;
+                              updateConfig('take_profit_targets', newTargets);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">x</span>
+                          <Input
+                            type="number"
+                            placeholder="20"
+                            value={config.take_profit_targets?.[1] || ''}
+                            onChange={(e) => {
+                              const newTargets = [...(config.take_profit_targets || [])];
+                              newTargets[1] = parseInt(e.target.value) || 0;
+                              updateConfig('take_profit_targets', newTargets);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">x</span>
+                          <Input
+                            type="number"
+                            placeholder="30"
+                            value={config.take_profit_targets?.[2] || ''}
+                            onChange={(e) => {
+                              const newTargets = [...(config.take_profit_targets || [])];
+                              newTargets[2] = parseInt(e.target.value) || 0;
+                              updateConfig('take_profit_targets', newTargets);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">x</span>
+                        </div>
+                        <p className="text-xs text-gray-400">Price multipliers for taking profits (e.g., 10x, 20x, 30x)</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label className="text-gray-300">Position Percentages (%)</Label>
+                        <div className="flex gap-2">
+                          <Input
+                            type="number"
+                            placeholder="50"
+                            value={config.take_profit_percentages?.[0] || ''}
+                            onChange={(e) => {
+                              const newPercentages = [...(config.take_profit_percentages || [])];
+                              newPercentages[0] = parseFloat(e.target.value) || 0;
+                              updateConfig('take_profit_percentages', newPercentages);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">%</span>
+                          <Input
+                            type="number"
+                            placeholder="30"
+                            value={config.take_profit_percentages?.[1] || ''}
+                            onChange={(e) => {
+                              const newPercentages = [...(config.take_profit_percentages || [])];
+                              newPercentages[1] = parseFloat(e.target.value) || 0;
+                              updateConfig('take_profit_percentages', newPercentages);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">%</span>
+                          <Input
+                            type="number"
+                            placeholder="20"
+                            value={config.take_profit_percentages?.[2] || ''}
+                            onChange={(e) => {
+                              const newPercentages = [...(config.take_profit_percentages || [])];
+                              newPercentages[2] = parseFloat(e.target.value) || 0;
+                              updateConfig('take_profit_percentages', newPercentages);
+                            }}
+                            className="bg-gray-800 border-gray-600 text-white flex-1"
+                            min="1"
+                            max="100"
+                          />
+                          <span className="text-gray-400 text-sm self-center">%</span>
+                        </div>
+                        <p className="text-xs text-gray-400">% of position to sell at each target (should total 100%)</p>
+                      </div>
+
+                      <div className="p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                        <div className="text-xs text-blue-200/80">
+                          <strong>Example:</strong> Targets: 10x, 20x, 30x | Percentages: 50%, 30%, 20%<br/>
+                          <strong>Result:</strong> Sell 50% at 10x, 30% at 20x, 20% at 30x profit
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="flex justify-between">
                   <Button 
                     onClick={() => setConfig({...config, is_active: !config.is_active})}
