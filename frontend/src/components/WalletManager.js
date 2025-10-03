@@ -289,19 +289,19 @@ const WalletManager = ({ ws }) => {
                 </div>
               </CardHeader>
               
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-3 md:space-y-4">
                 {/* Address */}
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-400">Address</Label>
-                  <div className="flex items-center gap-2">
-                    <code className="text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <code className="text-xs md:text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 truncate">
                       {formatAddress(wallet.address)}
                     </code>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => copyToClipboard(wallet.address, 'Address')}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 flex-shrink-0"
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
@@ -309,7 +309,7 @@ const WalletManager = ({ ws }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => openInBSCScan(wallet.address)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 flex-shrink-0"
                     >
                       <ExternalLink className="h-3 w-3" />
                     </Button>
@@ -320,7 +320,7 @@ const WalletManager = ({ ws }) => {
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-400">Balance</Label>
                   <div className="flex items-center justify-between">
-                    <span className="text-white font-semibold">
+                    <span className="text-white font-semibold text-sm md:text-base">
                       {formatBalance(wallet.balance_bnb)} BNB
                     </span>
                     <Button
@@ -330,7 +330,7 @@ const WalletManager = ({ ws }) => {
                         // Simulate balance refresh
                         toast.success('Balance refreshed');
                       }}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0"
                     >
                       <RefreshCw className="h-3 w-3" />
                     </Button>
@@ -340,8 +340,8 @@ const WalletManager = ({ ws }) => {
                 {/* Private Key (Sensitive) */}
                 <div className="space-y-1">
                   <Label className="text-xs text-gray-400">Private Key</Label>
-                  <div className="flex items-center gap-2">
-                    <code className="text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 select-none">
+                  <div className="flex items-center gap-1 md:gap-2">
+                    <code className="text-xs md:text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 truncate select-none">
                       {showPrivateKeys[wallet.id] ? 
                         `0x••••••••••••••••••••••••••••••••••••••••••••••••••••••••••••${wallet.address?.slice(-6) || 'N/A'}` : 
                         '0x••••••••••••••••••••••••••••••••••••••••••••••••••••••'
