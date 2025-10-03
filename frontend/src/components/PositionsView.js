@@ -128,10 +128,11 @@ const PositionsView = ({ ws, selectedWalletId }) => {
 
   const getTakeProfitProgress = (position) => {
     if (!position.take_profits_hit || position.take_profits_hit.length === 0) {
-      return { progress: 0, completed: 0, total: 3 };
+      const total = tradingConfig?.take_profit_targets?.length || 3;
+      return { progress: 0, completed: 0, total };
     }
     const completed = position.take_profits_hit.length;
-    const total = 3; // Assuming 3 TP levels
+    const total = tradingConfig?.take_profit_targets?.length || 3;
     const progress = (completed / total) * 100;
     return { progress, completed, total };
   };
