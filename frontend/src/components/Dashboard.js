@@ -127,16 +127,52 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
 
   const fetchDashboardData = async () => {
     try {
-      const [positionsRes, pairsRes, statsRes, walletsRes] = await Promise.all([
-        axios.get(`${API}/positions`),
-        axios.get(`${API}/pairs/detected`),
-        axios.get(`${API}/stats`),
-        axios.get(`${API}/wallets`)
-      ]);
+      // Fetch each endpoint individually with error handling
+      let positionsData = [];
+      let detectedPairsData = [];
+      let statsData = {};
+      let walletsData = [];
+
+      // Fetch positions with individual error handling
+      try {
+        const positionsRes = await axios.get(`${API}/positions`);
+        positionsData = positionsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch positions:', error);
+        toast.error('Failed to load positions data');
+      }
+
+      // Fetch pairs with individual error handling  
+      try {
+        const pairsRes = await axios.get(`${API}/pairs/detected`);
+        detectedPairsData = pairsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch pairs:', error);
+        toast.error('Failed to load pairs data');
+      }
+
+      // Fetch stats with individual error handling
+      try {
+        const statsRes = await axios.get(`${API}/stats`);
+        statsData = statsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+        toast.error('Failed to load stats data');
+      }
+
+      // Fetch wallets with individual error handling
+      try {
+        const walletsRes = await axios.get(`${API}/wallets`);
+        walletsData = walletsRes.data;
+      } catch (error) {
+        console.error('Failed to fetch wallets:', error);
+        toast.error('Failed to load wallets data');
+      }
       
-      const allPositions = positionsRes.data;
-      const wallets = walletsRes.data;
-      const detectedPairs = pairsRes.data;
+      // Process data even if some calls failed
+      const allPositions = positionsData;
+      const wallets = walletsData;
+      const detectedPairs = detectedPairsData;
       
       // Add wallet names to positions
       const positionsWithWallets = allPositions.map(position => {
@@ -172,7 +208,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       
       // Update stats with calculated values
       const calculatedStats = {
-        ...statsRes.data,
+        ...statsData,
         total_pnl_usd: totalPnL,
         realized_pnl_usd: realizedPnL,
         unrealized_pnl_usd: unrealizedPnL,
@@ -185,14 +221,15 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       };
       
       setPositions(positionsWithWallets);
-      setDetectedPairs(pairsRes.data);
+      setDetectedPairs(detectedPairsData);
       setStats(calculatedStats);
       // Initialize total pairs detected from backend stats (real DB count)
-      setTotalPairsDetected(statsRes.data.pairs_detected || 0);
+      setTotalPairsDetected(statsData.pairs_detected || 0);
     } catch (error) {
-      console.error('Failed to fetch dashboard data:', error);
+      console.error('Critical error in fetchDashboardData:', error);
       toast.error('Failed to load dashboard data');
     } finally {
+      // ALWAYS set loading to false, regardless of any errors
       setLoading(false);
     }
   };
