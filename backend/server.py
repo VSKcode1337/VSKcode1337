@@ -245,7 +245,7 @@ bot_state = BotState()
 
 @api_router.get("/")
 async def root():
-    return {"message": "PCS Sniper Bot API", "version": "1.0.0", "status": "active"}
+    return {"message": "Paradox Bot API", "version": "1.0.0", "status": "active"}
 
 @api_router.get("/status")
 async def get_bot_status():
