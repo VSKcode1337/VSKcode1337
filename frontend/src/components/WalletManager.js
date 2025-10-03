@@ -97,6 +97,27 @@ const WalletManager = ({ ws }) => {
     window.open(`https://bscscan.com/address/${address}`, '_blank');
   };
 
+  const deleteWallet = async (walletId, walletName) => {
+    try {
+      await axios.delete(`${API}/wallets/${walletId}`);
+      toast.success(`Wallet "${walletName}" deleted successfully`);
+      await fetchWallets(); // Refresh wallet list
+    } catch (error) {
+      console.error('Delete wallet error:', error);
+      toast.error('Failed to delete wallet');
+    }
+  };
+
+  const refreshRealBalance = async (walletId) => {
+    try {
+      const response = await axios.post(`${API}/wallets/${walletId}/check-real-balance`);
+      await fetchWallets(); // Refresh to show updated balance
+      toast.success(`Real balance: ${response.data.real_balance_bnb?.toFixed(6)} BNB`);
+    } catch (error) {
+      toast.error('Failed to refresh real balance');
+    }
+  };
+
   const generateRandomWallet = () => {
     // Generate a random private key (for demo purposes - in production, use proper crypto libraries)
     const randomKey = '0x' + Array.from({length: 64}, () => Math.floor(Math.random() * 16).toString(16)).join('');
