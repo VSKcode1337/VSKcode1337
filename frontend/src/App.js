@@ -330,6 +330,38 @@ const AppContent = () => {
                 </div>
               </div>
               
+              {/* Mobile Account Mode Toggle */}
+              <div className="flex items-center gap-2 mt-2">
+                <button
+                  onClick={() => {
+                    setAccountMode('demo');
+                    localStorage.setItem('accountMode', 'demo');
+                    toast.success('Switched to Demo Account');
+                  }}
+                  className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                    accountMode === 'demo'
+                      ? 'bg-green-600 text-white shadow-lg shadow-green-600/30'
+                      : 'bg-gray-700 text-gray-400'
+                  }`}
+                >
+                  🎮 Demo
+                </button>
+                <button
+                  onClick={() => {
+                    setAccountMode('real');
+                    localStorage.setItem('accountMode', 'real');
+                    toast.success('Switched to Real Account');
+                  }}
+                  className={`flex-1 px-3 py-1.5 rounded text-xs font-medium transition-all ${
+                    accountMode === 'real'
+                      ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
+                      : 'bg-gray-700 text-gray-400'
+                  }`}
+                >
+                  💼 Real
+                </button>
+              </div>
+              
               <div className="text-right">
                 {!isConnected && (
                   <button 
