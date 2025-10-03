@@ -938,15 +938,15 @@ async def update_position_prices():
                     
                     # Only add to broadcast if position wasn't closed
                     if not was_closed:
-                        # Add to broadcast list with real-time data
+                        # Add to broadcast list with realistic data
                         updated_positions.append({
                             "id": position["id"],
                             "token_symbol": position.get("token_symbol", ""),
-                            "current_price": new_price,
+                            "current_price": new_price_usd,
                             "current_value_usd": new_value_usd,
                             "unrealized_pnl_usd": unrealized_pnl_usd,
                             "unrealized_pnl_percent": unrealized_pnl_percent,
-                            "price_source": price_data.get('source', 'blockchain') if price_data else 'blockchain'
+                            "price_source": "Realistic Demo Simulation"
                         })
                     
                 except Exception as e:
