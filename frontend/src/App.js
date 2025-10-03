@@ -308,7 +308,7 @@ const AppContent = () => {
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/30 rounded border border-gray-700">
                   <div className={`w-2 h-2 rounded-full ${
                     isConnected 
-                      ? 'bg-green-500 shadow-sm shadow-green-500/50' 
+                      ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
                       : isConnecting
                       ? 'bg-yellow-500 shadow-sm shadow-yellow-500/50 animate-pulse'
                       : 'bg-red-500 shadow-sm shadow-red-500/50'
@@ -318,7 +318,7 @@ const AppContent = () => {
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-800/30 rounded border border-gray-700">
                   <div className={`w-2 h-2 rounded-full ${
                     botStatus.blockchain_connected 
-                      ? 'bg-green-500 shadow-sm shadow-green-500/50' 
+                      ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
                       : 'bg-red-500 shadow-sm shadow-red-500/50'
                   }`}></div>
                   <span className="text-gray-300 text-xs">BC</span>
