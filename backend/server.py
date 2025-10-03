@@ -881,45 +881,66 @@ async def update_position_prices():
             
             for position in open_positions:
                 try:
-                    # Get REAL-TIME price from DexScreener (much more accurate)
+                    # Get REAL-TIME price from DexScreener (most accurate)
                     token_address = position.get("token_address")
                     if not token_address:
                         continue
                     
-                    # Fetch real-time price data
+                    # Try DexScreener first for accuracy
                     price_data = await get_real_time_token_price(token_address)
-                    if not price_data:
-                        # Fallback to blockchain data if DexScreener fails
+                    if price_data and price_data['price_usd'] > 0:
+                        new_price_usd = price_data['price_usd']
+                        price_source = "DexScreener"
+                    else:
+                        # Fallback to blockchain data
                         pair_address = position.get("pair_address")
                         if not pair_address:
                             continue
                         pair_info = await get_pair_info(pair_address)
                         if not pair_info:
                             continue
-                        new_price = pair_info['initial_price']
-                    else:
-                        # Use real-time DexScreener price (MUCH MORE ACCURATE)
-                        new_price = price_data['price_usd']
+                        new_price_usd = pair_info['initial_price']
+                        price_source = "Blockchain"
                     
-                    # Calculate new values with REAL market price
+                    # Get position data
                     tokens_held = position.get("tokens_held", 0)
-                    new_value_usd = new_price * tokens_held
                     entry_amount_usd = position.get("entry_amount_usd", 0)
+                    entry_price = position.get("entry_price", 0)
                     
-                    # Calculate P&L with real market data
+                    # Validate data to prevent fake calculations
+                    if tokens_held <= 0 or entry_amount_usd <= 0 or entry_price <= 0:
+                        logger.warning(f"Invalid position data for {position.get('token_symbol')} - skipping")
+                        continue
+                    
+                    # REALISTIC P&L Calculation
+                    # Current value = (current_price / entry_price) * entry_amount
+                    price_multiplier = new_price_usd / entry_price if entry_price > 0 else 1
+                    new_value_usd = entry_amount_usd * price_multiplier
+                    
+                    # Calculate realistic P&L
                     unrealized_pnl_usd = new_value_usd - entry_amount_usd
-                    unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
+                    unrealized_pnl_percent = ((new_value_usd - entry_amount_usd) / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
+                    
+                    # Cap unrealistic gains (prevent 300,000% bugs)
+                    if unrealized_pnl_percent > 10000:  # Max 10,000% gain
+                        logger.warning(f"🚨 Capping unrealistic gain for {position.get('token_symbol')}: {unrealized_pnl_percent:.1f}% -> 10000%")
+                        unrealized_pnl_percent = 10000
+                        new_value_usd = entry_amount_usd * 101  # 10,000% = 101x
+                        unrealized_pnl_usd = new_value_usd - entry_amount_usd
+                    
+                    logger.info(f"💰 {position.get('token_symbol')}: ${entry_price:.8f} -> ${new_price_usd:.8f} = {unrealized_pnl_percent:.2f}% ({price_source})")
                     
                     # Update in database with real-time data
                     await db.positions.update_one(
                         {"id": position["id"]},
                         {
                             "$set": {
-                                "current_price": new_price,
+                                "current_price": new_price_usd,
                                 "current_value_usd": new_value_usd,
                                 "unrealized_pnl_usd": unrealized_pnl_usd,
                                 "unrealized_pnl_percent": unrealized_pnl_percent,
-                                "last_price_update": datetime.now(timezone.utc).isoformat()
+                                "last_price_update": datetime.now(timezone.utc).isoformat(),
+                                "price_source": price_source
                             }
                         }
                     )
