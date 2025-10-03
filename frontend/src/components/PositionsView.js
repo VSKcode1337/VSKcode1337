@@ -114,22 +114,29 @@ const PositionsView = ({ ws, selectedWalletId }) => {
   };
 
   const calculateTimeHeld = (entryTime, exitTime = null) => {
-    // Fix timezone issue: Database stores UTC, but browser time might be different
-    const end = exitTime ? new Date(exitTime) : new Date();
-    const start = new Date(entryTime);
-    
-    // Calculate difference accounting for timezone offset
-    const diffMs = end.getTime() - start.getTime();
-    const minutes = Math.floor(diffMs / 60000);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-    
-    // Ensure we don't show negative time
-    if (diffMs < 0) return "0m";
-    
-    if (days > 0) return `${days}d ${hours % 24}h`;
-    if (hours > 0) return `${hours}h ${minutes % 60}m`;
-    return `${minutes}m`;
+    try {
+      // Parse times in UTC to avoid timezone issues
+      const end = exitTime ? new Date(exitTime + 'Z') : new Date();
+      const start = new Date(entryTime + 'Z'); // Ensure UTC parsing
+      
+      // Calculate difference in milliseconds
+      const diffMs = end.getTime() - start.getTime();
+      
+      // Ensure we don't show negative time
+      if (diffMs < 0) return "0m";
+      
+      const totalMinutes = Math.floor(diffMs / 60000);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+      const days = Math.floor(hours / 24);
+      
+      if (days > 0) return `${days}d ${hours % 24}h`;
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${totalMinutes}m`;
+    } catch (error) {
+      console.error('Error calculating time held:', error);
+      return "0m";
+    }
   };
 
   const getTakeProfitProgress = (position) => {
