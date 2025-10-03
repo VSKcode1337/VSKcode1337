@@ -244,11 +244,26 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
             <Activity className="h-4 w-4 text-yellow-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {stats.pairs_detected}
+            <div className="text-xl font-bold text-white">
+              {stats.pairs_detected || 0}
             </div>
             <p className="text-xs text-gray-400 mt-1">
               {stats.pairs_traded || 0} traded ({(((stats.pairs_traded || 0) / Math.max((stats.pairs_detected || 1), 1)) * 100).toFixed(1)}%)
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="glass card-hover border-purple-500/20">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium text-gray-300">Total P&L</CardTitle>
+            <TrendingUp className="h-4 w-4 text-purple-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-white">
+              {formatPnL(stats.total_pnl_usd || 0)}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Combined total
             </p>
           </CardContent>
         </Card>
