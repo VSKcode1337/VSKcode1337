@@ -258,10 +258,10 @@ const WalletManager = ({ ws }) => {
       </Card>
 
       {/* Wallets Grid - Single column on mobile, responsive on larger screens */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 max-w-full">
         {wallets.length === 0 ? (
           <div className="col-span-full">
-            <Card className="glass border-gray-700">
+            <Card className="glass border-gray-700 max-w-full overflow-hidden">
               <CardContent className="p-12 text-center">
                 <Wallet className="h-12 w-12 mx-auto mb-4 text-gray-500" />
                 <h3 className="text-lg font-medium text-gray-300 mb-2">No Wallets Added</h3>
