@@ -299,6 +299,156 @@ const ConfigPanel = () => {
 
         <TabsContent value="trading">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Trading Parameters */}
+            <Card className="glass border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-400" />
+                  Trading Parameters
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Configure core trading settings and risk parameters
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="trade-amount" className="text-gray-300">Trade Amount (USD)</Label>
+                      <Input
+                        id="trade-amount"
+                        type="number"
+                        placeholder="50"
+                        value={config.trade_amount_usd}
+                        onChange={(e) => updateConfig('trade_amount_usd', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="1"
+                        max="1000"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="max-trade-amount" className="text-gray-300">Max Trade Amount (USD)</Label>
+                      <Input
+                        id="max-trade-amount"
+                        type="number"
+                        placeholder="100"
+                        value={config.max_trade_amount_usd}
+                        onChange={(e) => updateConfig('max_trade_amount_usd', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="1"
+                        max="100"
+                      />
+                      <p className="text-xs text-gray-400">Maximum allowed trade size per position</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="min-liquidity" className="text-gray-300">Min Liquidity (USD)</Label>
+                      <Input
+                        id="min-liquidity"
+                        type="number"
+                        placeholder="10000"
+                        value={config.min_liquidity_usd}
+                        onChange={(e) => updateConfig('min_liquidity_usd', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="1000"
+                        max="1000000"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="slippage" className="text-gray-300">Slippage Tolerance (%)</Label>
+                      <Input
+                        id="slippage"
+                        type="number"
+                        placeholder="12"
+                        value={config.slippage_tolerance_percent}
+                        onChange={(e) => updateConfig('slippage_tolerance_percent', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="1"
+                        max="50"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="max-tax-buy" className="text-gray-300">Max Buy Tax (%)</Label>
+                      <Input
+                        id="max-tax-buy"
+                        type="number"
+                        placeholder="6"
+                        value={config.max_tax_buy_percent}
+                        onChange={(e) => updateConfig('max_tax_buy_percent', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="0"
+                        max="25"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="max-tax-sell" className="text-gray-300">Max Sell Tax (%)</Label>
+                      <Input
+                        id="max-tax-sell"
+                        type="number"
+                        placeholder="6"
+                        value={config.max_tax_sell_percent}
+                        onChange={(e) => updateConfig('max_tax_sell_percent', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="0"
+                        max="25"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="stop-loss" className="text-gray-300">Stop Loss (%)</Label>
+                      <Input
+                        id="stop-loss"
+                        type="number"
+                        placeholder="50"
+                        value={config.stop_loss_percent}
+                        onChange={(e) => updateConfig('stop_loss_percent', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="5"
+                        max="90"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="max-position-time" className="text-gray-300">Max Position Time (mins)</Label>
+                      <Input
+                        id="max-position-time"
+                        type="number"
+                        placeholder="90"
+                        value={config.max_position_time_minutes}
+                        onChange={(e) => updateConfig('max_position_time_minutes', parseFloat(e.target.value) || 0)}
+                        className="bg-gray-800 border-gray-600 text-white"
+                        min="1"
+                        max="1440"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-between">
+                  <Button 
+                    onClick={() => setConfig({...config, is_active: !config.is_active})}
+                    variant={config.is_active ? "default" : "outline"}
+                    className="flex items-center gap-2"
+                  >
+                    {config.is_active ? "✅ Active" : "⏸️ Disabled"}
+                  </Button>
+                  <Button 
+                    onClick={saveConfig}
+                    disabled={saving}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    {saving ? 'Saving...' : 'Save Trading Config'}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Export/Import Config */}
             <Card className="glass border-gray-700">
               <CardHeader>
