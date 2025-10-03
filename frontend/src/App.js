@@ -336,6 +336,22 @@ const AppContent = () => {
                     </button>
                   </div>
                   
+                  {/* Wallet Selector */}
+                  <div className="flex items-center gap-2 ml-4 px-3 py-1.5 bg-gray-800/50 rounded-lg border border-gray-700">
+                    <span className="text-xs text-gray-400">Wallet:</span>
+                    <select 
+                      value={selectedWalletId || ''}
+                      onChange={(e) => switchWallet(e.target.value)}
+                      className="bg-transparent text-xs text-white border-none outline-none"
+                    >
+                      {availableWallets.map(wallet => (
+                        <option key={wallet.id} value={wallet.id} className="bg-gray-800">
+                          {wallet.name} ({wallet.balance_bnb?.toFixed(3)} BNB)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
                   {/* Bot Status */}
                   <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                     botStatus.is_running 
