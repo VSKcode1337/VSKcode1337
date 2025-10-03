@@ -1287,11 +1287,11 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
                 real_balance_wei = w3_temp.eth.get_balance(account.address)
                 real_balance_bnb = float(w3_temp.from_wei(real_balance_wei, 'ether'))
                 
-                # Calculate minimum needed (trade amount + gas)
-                trade_amount_usd = config.get('trade_amount_usd', 50)
-                bnb_price_usd = 600
+                # Calculate minimum needed (trade amount + gas) - USE REAL BNB PRICE
+                trade_amount_usd = config.get('trade_amount_usd', 5)
+                bnb_price_usd = 1170  # Real BNB price (~$1,170)
                 trade_amount_bnb = trade_amount_usd / bnb_price_usd
-                min_balance_needed = trade_amount_bnb + 0.01  # Add gas buffer
+                min_balance_needed = trade_amount_bnb + 0.002  # Add gas buffer
                 
                 logger.info(f"💰 Wallet {wallet.get('name')}: {real_balance_bnb:.6f} BNB (need: {min_balance_needed:.6f})")
                 
