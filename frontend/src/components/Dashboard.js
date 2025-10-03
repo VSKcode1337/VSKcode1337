@@ -396,10 +396,16 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                   positions.filter(p => p.status === 'open').map((position) => (
                     <div key={position.id} className="p-4 bg-gray-800/30 rounded-lg border border-gray-700">
                       <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-semibold text-white">{position.token_symbol}</h3>
-                          <Badge variant="outline">{position.status.toUpperCase()}</Badge>
-                          <span className="text-xs text-gray-400 font-mono">{position.token_address?.slice(0, 8)}...</span>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-bold text-white text-lg">{position.token_symbol}</h3>
+                            <Badge variant="outline" className="text-xs">{position.status.toUpperCase()}</Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-blue-400 font-medium">👛 {position.wallet_name}</span>
+                            <span className="text-gray-500">•</span>
+                            <span className="text-gray-400 font-mono text-xs">{position.token_address?.slice(0, 6)}...{position.token_address?.slice(-4)}</span>
+                          </div>
                         </div>
                         <div className="text-right">
                           <div className="text-lg font-bold">{formatPnL(position.unrealized_pnl_usd)}</div>
