@@ -433,67 +433,115 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                   </div>
                 ) : (
                   detectedPairs.map((pair) => (
-                    <div key={pair.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 p-3 md:p-4 bg-gray-800/30 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors max-w-full">
-                      <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className="font-semibold text-white text-sm md:text-base truncate">{pair.token_symbol}</span>
-                            <Badge variant={pair.risk_passed ? "default" : "destructive"} className="text-xs flex-shrink-0">
-                              {pair.risk_passed ? 'SAFE' : 'RISKY'}
-                            </Badge>
+                    <div key={pair.id} className="flex flex-col gap-3 p-3 md:p-4 bg-gray-800/30 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors max-w-full">
+                      {/* Token Info Row */}
+                      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0">
+                        <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
+                          <div className="flex flex-col min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-white text-sm md:text-base truncate">{pair.token_symbol}</span>
+                              <Badge variant={pair.risk_passed ? "default" : "destructive"} className="text-xs flex-shrink-0">
+                                {pair.risk_passed ? 'SAFE' : 'RISKY'}
+                              </Badge>
+                            </div>
+                            <span className="text-xs text-gray-400 font-mono truncate">{pair.token_address?.slice(0, 8)}...</span>
                           </div>
-                          <span className="text-xs text-gray-400 font-mono truncate">{pair.token_address?.slice(0, 8)}...</span>
+                        </div>
+                        
+                        <div className="flex items-center justify-between md:space-x-4 text-xs md:text-sm gap-2 flex-wrap">
+                          <div className="text-center min-w-0">
+                            <div className="text-gray-500 text-xs mb-1">Liquidity</div>
+                            <div className="text-white font-semibold text-xs md:text-sm">${pair.liquidity_usd?.toLocaleString()}</div>
+                          </div>
+                          <div className="text-center min-w-0">
+                            <div className="text-gray-500 text-xs mb-1">WBNB</div>
+                            <div className="text-white font-semibold text-xs md:text-sm">{pair.wbnb_reserves?.toFixed(2)}</div>
+                          </div>
+                          <div className="text-center min-w-0 flex-shrink-0">
+                            <div className="text-gray-500 text-xs mb-1">Time</div>
+                            <div className="text-white font-semibold text-xs md:text-sm whitespace-nowrap">
+                              {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
+                                timeZone: 'Europe/London',
+                                hour12: false,
+                                hour: '2-digit',
+                                minute: '2-digit',
+                                second: '2-digit'
+                              })}
+                            </div>
+                            <div className="text-gray-400 text-xs whitespace-nowrap">
+                              {(() => {
+                                const now = new Date();
+                                const detected = new Date(pair.detected_at);
+                                const diffMs = now - detected;
+                                const diffSecs = Math.floor(diffMs / 1000);
+                                const diffMins = Math.floor(diffSecs / 60);
+                                const diffHours = Math.floor(diffMins / 60);
+                                
+                                if (diffSecs < 60) return 'Just now';
+                                if (diffMins < 60) return `${diffMins}m ago`;
+                                if (diffHours < 24) return `${diffHours}h ago`;
+                                return `${Math.floor(diffHours / 24)}d ago`;
+                              })()}
+                            </div>
+                          </div>
+                          <div className="text-center min-w-0 flex-shrink-0">
+                            <div className="text-gray-500 text-xs mb-1">Action</div>
+                            {pair.action_taken === 'bought' ? (
+                              <div className="flex items-center justify-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-xs font-semibold">
+                                ✅ BOUGHT
+                              </div>
+                            ) : (
+                              <Badge variant="secondary" className="flex-shrink-0 text-xs">
+                                MONITORING
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                      
-                      <div className="flex items-center justify-between md:space-x-4 text-xs md:text-sm gap-2 flex-wrap">
-                        <div className="text-center min-w-0">
-                          <div className="text-gray-500 text-xs mb-1">Liquidity</div>
-                          <div className="text-white font-semibold text-xs md:text-sm">${pair.liquidity_usd?.toLocaleString()}</div>
-                        </div>
-                        <div className="text-center min-w-0">
-                          <div className="text-gray-500 text-xs mb-1">WBNB</div>
-                          <div className="text-white font-semibold text-xs md:text-sm">{pair.wbnb_reserves?.toFixed(2)}</div>
-                        </div>
-                        <div className="text-center min-w-0 flex-shrink-0">
-                          <div className="text-gray-500 text-xs mb-1">Time</div>
-                          <div className="text-white font-semibold text-xs md:text-sm whitespace-nowrap">
-                            {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
-                              timeZone: 'Europe/London',
-                              hour12: false,
-                              hour: '2-digit',
-                              minute: '2-digit',
-                              second: '2-digit'
-                            })}
-                          </div>
-                          <div className="text-gray-400 text-xs whitespace-nowrap">
-                            {(() => {
-                              const now = new Date();
-                              const detected = new Date(pair.detected_at);
-                              const diffMs = now - detected;
-                              const diffSecs = Math.floor(diffMs / 1000);
-                              const diffMins = Math.floor(diffSecs / 60);
-                              const diffHours = Math.floor(diffMins / 60);
-                              
-                              if (diffSecs < 60) return 'Just now';
-                              if (diffMins < 60) return `${diffMins}m ago`;
-                              if (diffHours < 24) return `${diffHours}h ago`;
-                              return `${Math.floor(diffHours / 24)}d ago`;
-                            })()}
-                          </div>
-                        </div>
-                        <div className="text-center min-w-0 flex-shrink-0">
-                          <div className="text-gray-500 text-xs mb-1">Action</div>
-                          {pair.action_taken === 'bought' ? (
-                            <div className="flex items-center justify-center gap-1 px-2 py-1 bg-green-500/20 border border-green-500/30 rounded text-green-400 text-xs font-semibold">
-                              ✅ BOUGHT
-                            </div>
-                          ) : (
-                            <Badge variant="secondary" className="flex-shrink-0 text-xs">
-                              MONITORING
-                            </Badge>
-                          )}
-                        </div>
+
+                      {/* Quick Links Row */}
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-700/50">
+                        <span className="text-xs text-gray-400 mr-2">Quick Links:</span>
+                        {pair.dexscreener_url && (
+                          <a 
+                            href={pair.dexscreener_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-blue-600/20 border border-blue-600/30 rounded text-blue-400 hover:bg-blue-600/30 transition-colors text-xs font-medium"
+                          >
+                            📊 Chart
+                          </a>
+                        )}
+                        {pair.pancakeswap_url && (
+                          <a 
+                            href={pair.pancakeswap_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-green-600/20 border border-green-600/30 rounded text-green-400 hover:bg-green-600/30 transition-colors text-xs font-medium"
+                          >
+                            🥞 Trade
+                          </a>
+                        )}
+                        {pair.bscscan_token_url && (
+                          <a 
+                            href={pair.bscscan_token_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-yellow-600/20 border border-yellow-600/30 rounded text-yellow-400 hover:bg-yellow-600/30 transition-colors text-xs font-medium"
+                          >
+                            🔍 Contract
+                          </a>
+                        )}
+                        {pair.bscscan_pair_url && (
+                          <a 
+                            href={pair.bscscan_pair_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-purple-600/20 border border-purple-600/30 rounded text-purple-400 hover:bg-purple-600/30 transition-colors text-xs font-medium"
+                          >
+                            📄 Pair
+                          </a>
+                        )}
                       </div>
                     </div>
                   ))
