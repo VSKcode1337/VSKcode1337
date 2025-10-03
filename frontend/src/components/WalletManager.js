@@ -230,6 +230,7 @@ const WalletManager = () => {
                 </div>
               </DialogContent>
             </Dialog>
+            </div>
           </div>
         </CardHeader>
       </Card>
