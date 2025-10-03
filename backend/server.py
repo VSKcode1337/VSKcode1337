@@ -983,7 +983,15 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
         
         # Get real-time price for accurate entry
         real_time_price = await get_real_time_token_price(detected_pair.token_address)
-        entry_price = real_time_price['price_usd'] if real_time_price else detected_pair.initial_price
+        
+        # Use realistic pricing approach
+        if real_time_price and real_time_price['price_usd'] > 0:
+            entry_price_usd = real_time_price['price_usd']
+            logger.info(f"📊 Using DexScreener price: ${entry_price_usd} for {detected_pair.token_symbol}")
+        else:
+            # Fallback: Use initial price from pair reserves
+            entry_price_usd = detected_pair.initial_price
+            logger.info(f"📊 Using blockchain price: ${entry_price_usd} for {detected_pair.token_symbol}")
         
         # Calculate trade size based on current config
         trade_amount_usd = config.get('trade_amount_usd', 50)
@@ -995,7 +1003,14 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             logger.warning(f"Wallet {wallet.get('name')} insufficient balance for ${trade_amount_usd} trade")
             return
             
-        # Create demo position with REAL-TIME entry price
+        # Calculate tokens purchased (REALISTIC calculation)
+        tokens_purchased = trade_amount_usd / entry_price_usd if entry_price_usd > 0 else 0
+        
+        if tokens_purchased <= 0:
+            logger.warning(f"Invalid token calculation for {detected_pair.token_symbol} - skipping trade")
+            return
+            
+        # Create demo position with REALISTIC calculations
         demo_position = Position(
             wallet_id=wallet['id'],
             token_address=detected_pair.token_address,
@@ -1004,14 +1019,14 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             pair_address=detected_pair.pair_address,
             entry_amount_bnb=trade_amount_bnb,
             entry_amount_usd=trade_amount_usd,
-            entry_price=entry_price,  # Use real-time price
-            current_price=entry_price,  # Start with real-time price
-            current_value_usd=trade_amount_usd,
-            tokens_held=trade_amount_usd / entry_price if entry_price > 0 else 1000,
+            entry_price=entry_price_usd,  # Real market price
+            current_price=entry_price_usd,  # Start with entry price
+            current_value_usd=trade_amount_usd,  # Starts equal to entry
+            tokens_held=tokens_purchased,  # Realistic token amount
             entry_time=datetime.now(timezone.utc),
             status="open",
-            unrealized_pnl_usd=0.0,
-            unrealized_pnl_percent=0.0,
+            unrealized_pnl_usd=0.0,  # Starts at zero
+            unrealized_pnl_percent=0.0,  # Starts at zero
             entry_tx_hash=f"demo_tx_{detected_pair.id[:8]}"
         )
         
