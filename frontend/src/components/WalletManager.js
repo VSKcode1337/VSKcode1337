@@ -372,6 +372,7 @@ const WalletManager = () => {
                           toast.success(`Added ${response.data.amount} BNB demo funds!`);
                           await fetchWallets(); // Refresh to show new balance
                         } catch (error) {
+                          console.error('Demo funds error:', error);
                           toast.error('Failed to add demo funds');
                         }
                       }}
@@ -383,12 +384,14 @@ const WalletManager = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1"
+                      className="flex-1 text-yellow-400 border-yellow-500"
                       onClick={() => {
-                        toast.info('Demo funds only available for test wallets. Real wallets require actual BNB funding.');
+                        toast.info('This is a real wallet. Fund it manually with actual BNB from your exchange.', {
+                          description: 'Send BNB using BEP20 (BSC) network to this address.'
+                        });
                       }}
                     >
-                      Real Wallet - Fund Manually
+                      🏦 Real Wallet - Fund Manually
                     </Button>
                   )}
                   
