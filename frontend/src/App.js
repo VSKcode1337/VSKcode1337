@@ -53,6 +53,14 @@ const AppContent = () => {
   const [ws, setWs] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
+  // Load account mode from localStorage
+  useEffect(() => {
+    const savedMode = localStorage.getItem('accountMode');
+    if (savedMode) {
+      setAccountMode(savedMode);
+    }
+  }, []);
+
   // Initialize WebSocket connection
   useEffect(() => {
     let reconnectAttempts = 0;
