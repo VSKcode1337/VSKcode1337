@@ -22,6 +22,25 @@ const PositionsView = ({ ws }) => {
     return () => clearInterval(interval);
   }, []);
 
+  // Listen for WebSocket updates
+  useEffect(() => {
+    if (ws) {
+      const handleMessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'position_closed' || message.type === 'positions_bulk_closed' || message.type === 'demo_position_created') {
+          // Refresh positions immediately when they change
+          fetchPositions();
+          if (message.type === 'position_closed') {
+            toast.success(`Position closed: ${message.data.token_symbol} - P&L: $${message.data.realized_pnl?.toFixed(2) || 'N/A'}`);
+          }
+        }
+      };
+      
+      ws.addEventListener('message', handleMessage);
+      return () => ws.removeEventListener('message', handleMessage);
+    }
+  }, [ws]);
+
   const fetchPositions = async () => {
     try {
       const response = await axios.get(`${API}/positions`);
