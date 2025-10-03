@@ -1234,11 +1234,20 @@ async def get_pair_info(pair_address: str):
         bnb_price_usd = 600
         liquidity_usd = wbnb_reserves * bnb_price_usd * 2  # Total liquidity
         
-        # Calculate initial price
-        if token_reserves > 0:
-            initial_price = wbnb_reserves / token_reserves
+        # Calculate initial price with validation
+        if token_reserves > 0 and wbnb_reserves > 0:
+            # Price = WBNB per token * BNB price in USD
+            price_per_token_in_bnb = wbnb_reserves / token_reserves
+            price_per_token_usd = price_per_token_in_bnb * bnb_price_usd
+            
+            # Validate reasonable price range to prevent fake calculations
+            if price_per_token_usd > 0.000001 and price_per_token_usd < 100000:  # Between $0.000001 and $100,000
+                initial_price = price_per_token_usd
+            else:
+                logger.warning(f"Unrealistic price calculated: ${price_per_token_usd} - using fallback")
+                initial_price = 0.01  # Fallback realistic price
         else:
-            initial_price = 0
+            initial_price = 0.01  # Fallback for zero reserves
         
         return {
             "wbnb_reserves": wbnb_reserves,
