@@ -55,16 +55,37 @@ const PositionsView = ({ ws, selectedWalletId }) => {
       const configRes = await axios.get(`${API}/config/trading`);
       setTradingConfig(configRes.data);
       
-      // Add wallet names to positions
-      const positionsWithWallets = positionsRes.data.map(position => {
-        const wallet = walletsRes.data.find(w => w.id === position.wallet_id);
-        return {
-          ...position,
-          wallet_name: wallet ? wallet.name : 'Unknown Wallet'
-        };
-      });
+      // For each position, sync with real blockchain data if it has real tx hash
+      const syncedPositions = await Promise.all(
+        positionsRes.data.map(async (position) => {
+          const wallet = walletsRes.data.find(w => w.id === position.wallet_id);
+          const positionWithWallet = {
+            ...position,
+            wallet_name: wallet ? wallet.name : 'Unknown Wallet'
+          };
+          
+          // If position has real transaction hash, sync real token balance
+          if (position.entry_tx_hash && 
+              !position.entry_tx_hash.startsWith('demo_') && 
+              position.status === 'open') {
+            try {
+              const syncResponse = await axios.post(`${API}/positions/${position.id}/sync-real-data`);
+              return {
+                ...positionWithWallet,
+                tokens_held: syncResponse.data.actual_tokens,
+                current_value_usd: syncResponse.data.current_value_usd,
+                unrealized_pnl_percent: Math.min(syncResponse.data.unrealized_pnl_percent, 1000) // Cap at 1000%
+              };
+            } catch (error) {
+              console.error(`Failed to sync position ${position.token_symbol}:`, error);
+            }
+          }
+          
+          return positionWithWallet;
+        })
+      );
       
-      setPositions(positionsWithWallets);
+      setPositions(syncedPositions);
     } catch (error) {
       console.error('Failed to fetch positions:', error);
       toast.error('Failed to load positions');
