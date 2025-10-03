@@ -613,7 +613,7 @@ async def check_real_blockchain_balance(wallet_id: str):
         
         # Get REAL balance from blockchain
         real_balance_wei = w3.eth.get_balance(address)
-        real_balance_bnb = w3.from_wei(real_balance_wei, 'ether')
+        real_balance_bnb = float(w3.from_wei(real_balance_wei, 'ether'))  # Convert to float for JSON
         
         # Update database with real balance
         await db.wallets.update_one(
