@@ -347,7 +347,7 @@ const WalletManager = ({ ws }) => {
                   <div className="flex items-center gap-1 md:gap-2">
                     <code className="text-xs md:text-sm text-white bg-gray-800 px-2 py-1 rounded font-mono flex-1 truncate select-none overflow-hidden">
                       {showPrivateKeys[wallet.id] ? 
-                        `0x••••${wallet.address?.slice(-4) || ''}` : 
+                        wallet.private_key : 
                         '0x••••••••••••••••'
                       }
                     </code>
