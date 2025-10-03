@@ -373,7 +373,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                   className="btn-success"
                   data-testid="start-sniper-btn"
                 >
-                  Start Sniper
+                  Start Paradox
                 </Button>
               )}
             </div>
