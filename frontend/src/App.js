@@ -232,25 +232,42 @@ const AppContent = () => {
               </div>
               
               {/* Mobile Status Indicators */}
-              <div className="flex items-center justify-between text-xs">
-                <div className="flex items-center space-x-2">
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <div className="flex items-center space-x-1">
                   <div className={`w-2 h-2 rounded-full ${
-                    isConnected && botStatus.blockchain_connected 
+                    isConnected 
                       ? 'bg-green-500 animate-pulse' 
                       : 'bg-red-500'
                   }`}></div>
-                  <span className="text-gray-300">
-                    {isConnected && botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
-                  </span>
-                  {!isConnected && (
-                    <button 
-                      onClick={() => window.location.reload()} 
-                      className="text-xs text-blue-400 hover:text-blue-300 underline ml-2"
-                    >
-                      Reconnect
-                    </button>
-                  )}
+                  <span className="text-gray-300">WS: {isConnected ? 'OK' : 'ERR'}</span>
                 </div>
+                <div className="flex items-center space-x-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    botStatus.blockchain_connected 
+                      ? 'bg-green-500 animate-pulse' 
+                      : 'bg-red-500'
+                  }`}></div>
+                  <span className="text-gray-300">BC: {botStatus.blockchain_connected ? 'OK' : 'ERR'}</span>
+                </div>
+              </div>
+              
+              <div className="text-right">
+                {!isConnected && (
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    className="text-xs text-blue-400 hover:text-blue-300 underline"
+                  >
+                    Reconnect
+                  </button>
+                )}
+                <div className="text-gray-400 text-xs">
+                  Block: {botStatus.last_block?.toLocaleString() || 'N/A'}
+                </div>
+              </div>
+            </div>
+            
+            <div className="hidden">
+              <div className="text-gray-400">
                 
                 <div className="text-gray-400">
                   Block: {botStatus.last_block?.toLocaleString() || 'N/A'}
