@@ -52,7 +52,10 @@ const WalletManager = () => {
       await fetchWallets();
     } catch (error) {
       console.error('Failed to add wallet:', error);
-      toast.error(error.response?.data?.detail || 'Failed to add wallet');
+      const errorMessage = typeof error.response?.data?.detail === 'string' 
+        ? error.response.data.detail 
+        : 'Failed to add wallet';
+      toast.error(errorMessage);
     } finally {
       setAdding(false);
     }
