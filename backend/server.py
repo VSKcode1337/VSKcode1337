@@ -30,7 +30,7 @@ client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
 # Create FastAPI app
-app = FastAPI(title="PCS Sniper Bot API", version="1.0.0")
+app = FastAPI(title="Paradox Bot API", version="1.0.0")
 api_router = APIRouter(prefix="/api")
 
 # Configure logging
