@@ -959,8 +959,8 @@ async def scan_pairs_via_http():
                     token0_address=token0.lower(),
                     token1_address=token1.lower(),
                     token_address=token_address,
-                    token_symbol=token_info['symbol'],
-                    token_name=token_info['name'],
+                    token_symbol=token_info['symbol'],  # Use original case
+                    token_name=token_info['name'],      # Use original case
                     wbnb_reserves=pair_info['wbnb_reserves'],
                     token_reserves=pair_info['token_reserves'],
                     liquidity_usd=pair_info['liquidity_usd'],
