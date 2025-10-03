@@ -342,7 +342,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
             <div>
               <CardTitle className="text-xl text-white flex items-center gap-2">
                 <Zap className="h-5 w-5 text-blue-400" />
-                Sniper Control
+                Paradox Control
               </CardTitle>
               <CardDescription className="text-gray-400">
                 Monitor and control your high-frequency trading bot
