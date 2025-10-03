@@ -469,10 +469,24 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                               second: '2-digit'
                             })}
                           </div>
-                          <div className="text-gray-400 text-xs">Just Now</div>
+                          <div className="text-gray-400 text-xs whitespace-nowrap">
+                            {(() => {
+                              const now = new Date();
+                              const detected = new Date(pair.detected_at);
+                              const diffMs = now - detected;
+                              const diffSecs = Math.floor(diffMs / 1000);
+                              const diffMins = Math.floor(diffSecs / 60);
+                              const diffHours = Math.floor(diffMins / 60);
+                              
+                              if (diffSecs < 60) return 'Just now';
+                              if (diffMins < 60) return `${diffMins}m ago`;
+                              if (diffHours < 24) return `${diffHours}h ago`;
+                              return `${Math.floor(diffHours / 24)}d ago`;
+                            })()}
+                          </div>
                         </div>
-                        <Badge variant={pair.action_taken === 'bought' ? 'default' : 'secondary'}>
-                          {pair.action_taken.toUpperCase()}
+                        <Badge variant={pair.action_taken === 'bought' ? 'default' : 'secondary'} className="flex-shrink-0 text-xs">
+                          {pair.action_taken?.toUpperCase() || 'NONE'}
                         </Badge>
                       </div>
                     </div>
