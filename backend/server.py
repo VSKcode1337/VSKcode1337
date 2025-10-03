@@ -553,6 +553,9 @@ async def simulate_pair_detection():
         await create_demo_position()
     
     if random.random() < 0.1:  # 10% chance of detecting a new pair
+        # Generate timestamp in current time (London timezone will be handled on frontend)
+        current_time = datetime.now(timezone.utc)
+        
         fake_pair = NewPairEvent(
             pair_address=f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
             token0_address=blockchain_config.wbnb_address,
@@ -564,7 +567,8 @@ async def simulate_pair_detection():
             liquidity_usd=random.uniform(5000, 50000),
             initial_price=random.uniform(0.000001, 0.01),
             block_number=blockchain_config.w3.eth.block_number if blockchain_config.w3.is_connected() else 0,
-            transaction_hash=f"0x{''.join(random.choices('0123456789abcdef', k=64))}"
+            transaction_hash=f"0x{''.join(random.choices('0123456789abcdef', k=64))}",
+            detected_at=current_time
         )
         
         # Store in database
