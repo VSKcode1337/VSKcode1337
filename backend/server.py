@@ -931,6 +931,25 @@ async def scan_pairs_via_http():
                 # Get token info
                 token_info = await get_token_info(pair_info['token_address'])
                 
+                # Filter out well-known established tokens (not genuinely "new")
+                established_tokens = {
+                    'USDT', 'TETHER USD', 'USDC', 'USD COIN', 'BUSD', 'BINANCE USD',
+                    'BTC', 'BITCOIN', 'ETH', 'ETHEREUM', 'BNB', 'BINANCE COIN',
+                    'ADA', 'CARDANO', 'DOT', 'POLKADOT', 'DOGE', 'DOGECOIN',
+                    'MATIC', 'POLYGON', 'AVAX', 'AVALANCHE', 'SOL', 'SOLANA'
+                }
+                
+                token_symbol = token_info['symbol'].upper()
+                token_name = token_info['name'].upper()
+                
+                # Skip if this is a well-known established token
+                if (token_symbol in established_tokens or 
+                    token_name in established_tokens or
+                    'TETHER' in token_name or
+                    'BINANCE' in token_name):
+                    logger.info(f"⏭️ Skipping established token: {token_info['symbol']} ({token_info['name']})")
+                    continue
+                
                 # Create NewPairEvent with useful links
                 token_address = pair_info['token_address'].lower()
                 pair_address_lower = pair_address.lower()
