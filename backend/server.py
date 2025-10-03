@@ -135,7 +135,7 @@ class BlockchainConfig:
         
         # Initialize Web3
         self.w3 = Web3(Web3.HTTPProvider(self.bsc_rpc_http))
-        self.w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+        self.w3.middleware_onion.inject(ExtraDataToPOAMiddleware, layer=0)
         
         # Contract ABIs (simplified for demo)
         self.factory_abi = [
