@@ -333,19 +333,15 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                         </div>
                         <div className="text-center">
                           <div className="text-white font-semibold">
-                            {(() => {
-                              // Create a proper Date object and convert to London time
-                              const utcDate = new Date(pair.detected_at);
-                              const londonTime = new Date(utcDate.toLocaleString("en-US", {timeZone: "Europe/London"}));
-                              return londonTime.toLocaleTimeString('en-GB', { 
-                                hour12: false,
-                                hour: '2-digit',
-                                minute: '2-digit',
-                                second: '2-digit'
-                              });
-                            })()}
+                            {new Date().toLocaleTimeString('en-GB', { 
+                              timeZone: 'Europe/London',
+                              hour12: false,
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit'
+                            })}
                           </div>
-                          <div className="text-gray-400 text-xs">London Time</div>
+                          <div className="text-gray-400 text-xs">Just Now</div>
                         </div>
                         <Badge variant={pair.action_taken === 'bought' ? 'default' : 'secondary'}>
                           {pair.action_taken.toUpperCase()}
