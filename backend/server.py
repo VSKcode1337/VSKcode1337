@@ -325,6 +325,24 @@ async def get_trading_stats():
     stats = await db.trading_stats.find_one({}) or TradingStats().dict()
     return TradingStats(**stats)
 
+@api_router.delete("/wallets/{wallet_id}")
+async def delete_wallet(wallet_id: str):
+    # Check if wallet exists
+    wallet = await db.wallets.find_one({"id": wallet_id})
+    if not wallet:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    
+    # Delete the wallet from database
+    result = await db.wallets.delete_one({"id": wallet_id})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    
+    # Remove from bot state if it exists
+    bot_state.wallets = [w for w in bot_state.wallets if w.id != wallet_id]
+    
+    return {"message": "Wallet deleted successfully", "wallet_id": wallet_id}
+
 @api_router.post("/wallets/{wallet_id}/add-demo-funds")
 async def add_demo_funds(wallet_id: str):
     import random
