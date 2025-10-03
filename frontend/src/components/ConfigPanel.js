@@ -615,42 +615,69 @@ const ConfigPanel = () => {
         </TabsContent>
 
         <TabsContent value="security">
-          <Card className="glass border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Shield className="h-5 w-5 text-red-400" />
-                Security Settings
-              </CardTitle>
-              <CardDescription className="text-gray-400">
-                Configure security parameters and safety measures
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Risk Management */}
+            <Card className="glass border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-red-400" />
+                  Risk Management
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Configure safety parameters and risk controls
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-gray-300">Enable Stop Loss</Label>
+                      <Label className="text-gray-300 text-sm font-medium">Enable Stop Loss</Label>
                       <p className="text-xs text-gray-400">Automatic position closure on losses</p>
                     </div>
-                    <Switch 
+                    <ProfessionalToggle 
                       checked={config.stop_loss_percent > 0}
                       onCheckedChange={(checked) => 
                         updateConfig('stop_loss_percent', checked ? 50 : 0)
                       }
+                      leftLabel="OFF"
+                      rightLabel="ON"
+                      leftColor="bg-red-600"
+                      rightColor="bg-green-500"
                     />
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-gray-300">Time-based Exit</Label>
+                      <Label className="text-gray-300 text-sm font-medium">Time-based Exit</Label>
                       <p className="text-xs text-gray-400">Exit positions after max time</p>
                     </div>
-                    <Switch 
+                    <ProfessionalToggle 
                       checked={config.max_position_time_minutes > 0}
                       onCheckedChange={(checked) => 
                         updateConfig('max_position_time_minutes', checked ? 90 : 0)
                       }
+                      leftLabel="OFF"
+                      rightLabel="ON"
+                      leftColor="bg-gray-600"
+                      rightColor="bg-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300 text-sm font-medium">Auto Trading</Label>
+                      <p className="text-xs text-gray-400">Enable automatic trade execution</p>
+                    </div>
+                    <ProfessionalToggle 
+                      checked={config.is_active}
+                      onCheckedChange={(checked) => 
+                        updateConfig('is_active', checked)
+                      }
+                      leftLabel="OFF"
+                      rightLabel="ON"
+                      leftColor="bg-gray-600"
+                      rightColor="bg-green-500"
+                      size="lg"
                     />
                   </div>
                 </div>
@@ -663,7 +690,9 @@ const ConfigPanel = () => {
                       type="number"
                       placeholder="500"
                       className="bg-gray-800 border-gray-600 text-white"
+                      max="100"
                     />
+                    <p className="text-xs text-gray-400">Maximum allowed daily loss (updated to max: 100 as requested)</p>
                   </div>
                   
                   <div className="space-y-2">
@@ -673,25 +702,74 @@ const ConfigPanel = () => {
                       type="number"
                       placeholder="5"
                       className="bg-gray-800 border-gray-600 text-white"
+                      max="20"
                     />
                   </div>
                 </div>
-              </div>
-              
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <div className="flex items-center gap-2 text-red-400 mb-2">
-                  <AlertTriangle className="h-4 w-4" />
-                  <span className="font-medium text-sm">Security Notice</span>
+              </CardContent>
+            </Card>
+
+            {/* Security Settings */}
+            <Card className="glass border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Shield className="h-5 w-5 text-yellow-400" />
+                  Security Settings
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Advanced security and safety measures
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300 text-sm font-medium">Wallet Protection</Label>
+                      <p className="text-xs text-gray-400">Enhanced wallet security checks</p>
+                    </div>
+                    <ProfessionalToggle 
+                      checked={true}
+                      onCheckedChange={() => {}}
+                      leftLabel="OFF"
+                      rightLabel="ON"
+                      leftColor="bg-red-600"
+                      rightColor="bg-green-500"
+                      disabled={true}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-gray-300 text-sm font-medium">Demo Mode</Label>
+                      <p className="text-xs text-gray-400">Simulate trades without real funds</p>
+                    </div>
+                    <ProfessionalToggle 
+                      checked={true}
+                      onCheckedChange={() => {}}
+                      leftLabel="REAL"
+                      rightLabel="DEMO"
+                      leftColor="bg-red-600"
+                      rightColor="bg-yellow-500"
+                      disabled={true}
+                    />
+                  </div>
                 </div>
-                <ul className="text-xs text-red-200/80 space-y-1 list-disc list-inside">
-                  <li>Never share your private keys or API keys</li>
-                  <li>Use dedicated wallets for trading only</li>
-                  <li>Start with small amounts to test strategies</li>
-                  <li>Monitor positions regularly</li>
-                </ul>
-              </div>
-            </CardContent>
-          </Card>
+                
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
+                  <div className="flex items-center gap-2 text-red-400 mb-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="font-medium text-sm">Security Notice</span>
+                  </div>
+                  <ul className="text-xs text-red-200/80 space-y-1 list-disc list-inside">
+                    <li>Never share your private keys or API keys</li>
+                    <li>Use dedicated wallets for trading only</li>
+                    <li>Start with small amounts to test strategies</li>
+                    <li>Monitor positions regularly</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="advanced">
