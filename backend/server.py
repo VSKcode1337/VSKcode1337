@@ -1133,7 +1133,11 @@ async def get_real_time_token_price(token_address: str):
             async with session.get(url, timeout=aiohttp.ClientTimeout(total=3)) as response:
                 if response.status == 200:
                     data = await response.json()
-                    pairs = data.get('pairs', [])
+                    pairs = data.get('pairs')
+                    
+                    # Check if pairs exist
+                    if not pairs or len(pairs) == 0:
+                        return None
                     
                     # Find the pair with highest liquidity (most accurate)
                     best_pair = None
@@ -1144,7 +1148,7 @@ async def get_real_time_token_price(token_address: str):
                     
                     if best_pair:
                         price_usd = float(best_pair.get('priceUsd', '0'))
-                        price_change = float(best_pair.get('priceChange', {}).get('h1', '0'))
+                        price_change = float(best_pair.get('priceChange', {}).get('h1', '0') or '0')
                         liquidity_usd = best_pair.get('liquidity', {}).get('usd', 0)
                         volume_24h = best_pair.get('volume', {}).get('h24', 0)
                         
@@ -1156,11 +1160,10 @@ async def get_real_time_token_price(token_address: str):
                             'source': 'dexscreener_realtime'
                         }
                         
-        logger.warning(f"No DexScreener data found for {token_address}")
         return None
         
     except Exception as e:
-        logger.error(f"Error fetching real-time price for {token_address}: {e}")
+        logger.error(f"Error fetching DexScreener price for {token_address}: {e}")
         return None
 
 async def get_pair_info(pair_address: str):
