@@ -526,7 +526,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Pairs Detected</span>
-                  <span className="text-white font-semibold">{stats.pairs_detected || 0} total</span>
+                  <span className="text-white font-semibold">{Math.max(stats.pairs_detected || 0, livePairsCount)} total</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Detection Rate</span>
