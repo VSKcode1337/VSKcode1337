@@ -125,7 +125,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     return () => window.removeEventListener('refreshDashboard', handleRefresh);
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       // Fetch each endpoint individually with error handling
       let positionsData = [];
@@ -232,7 +232,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       // ALWAYS set loading to false, regardless of any errors
       setLoading(false);
     }
-  };
+  }, []);
 
   const startSniper = async () => {
     try {
