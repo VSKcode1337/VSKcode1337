@@ -1269,59 +1269,83 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
         return False
 
 async def auto_close_position(position_id: str, reason: str, current_price: float):
-    """Automatically close a position and return funds to wallet"""
+    """Automatically close a position with REAL PancakeSwap sell execution"""
     try:
         position = await db.positions.find_one({"id": position_id})
         if not position or position.get("status") != "open":
             return
         
-        # Calculate final values
-        current_value_usd = position.get("current_value_usd", 0)
-        entry_amount_usd = position.get("entry_amount_usd", 0)
-        realized_pnl = current_value_usd - entry_amount_usd
-        
-        # Return funds to wallet
-        bnb_price = 600  # Approximate BNB price
-        bnb_to_return = current_value_usd / bnb_price
-        
+        # Get wallet with private key
         wallet_id = position.get("wallet_id")
-        if wallet_id:
-            wallet = await db.wallets.find_one({"id": wallet_id})
-            if wallet:
-                new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
-                await db.wallets.update_one(
-                    {"id": wallet_id},
-                    {"$set": {"balance_bnb": new_balance}}
-                )
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet or not wallet.get("private_key"):
+            logger.error(f"No private key for wallet {wallet_id} - cannot execute real auto-close")
+            return
         
-        # Update position to closed
-        await db.positions.update_one(
-            {"id": position_id},
-            {
-                "$set": {
-                    "status": "closed",
-                    "exit_time": datetime.now(timezone.utc),
-                    "realized_pnl_usd": realized_pnl,
-                    "notes": f"Auto-closed: {reason}"
-                }
-            }
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config:
+            logger.error("No RPC configuration for real auto-close")
+            return
+        
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        from eth_account import Account
+        account = Account.from_key(wallet['private_key'])
+        token_address = position.get("token_address")
+        
+        # Get current token balance
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
         )
         
-        # Broadcast closure
-        await bot_state.broadcast_to_clients({
-            "type": "position_closed",
-            "data": {
-                "position_id": position_id,
-                "token_symbol": position.get("token_symbol"),
-                "reason": reason,
-                "realized_pnl": realized_pnl
-            }
-        })
+        token_balance_wei = token_contract.functions.balanceOf(account.address).call()
+        decimals = token_contract.functions.decimals().call()
+        actual_tokens = token_balance_wei / (10 ** decimals)
         
-        logger.info(f"🔒 AUTO-CLOSED: {position.get('token_symbol')} - {reason} - P&L: ${realized_pnl:.2f}")
+        if actual_tokens <= 0:
+            logger.warning(f"No tokens to auto-sell for {position.get('token_symbol')}")
+            return
+        
+        logger.info(f"🤖 AUTO-CLOSE: Selling {actual_tokens:.2f} {position.get('token_symbol')} - {reason}")
+        
+        # Execute REAL auto-sell on PancakeSwap
+        config = await db.trading_config.find_one({"is_active": True})
+        sell_tx_hash = await execute_real_pancakeswap_sell(
+            w3, account, token_address, actual_tokens, config or {}
+        )
+        
+        if sell_tx_hash:
+            # Update position to closed
+            await db.positions.update_one(
+                {"id": position_id},
+                {
+                    "$set": {
+                        "status": "closed",
+                        "exit_time": datetime.now(timezone.utc),
+                        "exit_tx_hashes": [sell_tx_hash],
+                        "tokens_sold": actual_tokens,
+                        "notes": f"Auto-closed: {reason} - REAL SELL TX: {sell_tx_hash}"
+                    }
+                }
+            )
+        
+            # Broadcast closure
+            await bot_state.broadcast_to_clients({
+                "type": "position_closed",
+                "data": {
+                    "position_id": position_id,
+                    "token_symbol": position.get("token_symbol"),
+                    "reason": reason,
+                    "tokens_sold": actual_tokens,
+                    "sell_tx_hash": sell_tx_hash
+                }
+            })
+            
+            logger.info(f"🔒 REAL AUTO-CLOSE: {position.get('token_symbol')} - {reason} - TX: {sell_tx_hash}")
         
     except Exception as e:
-        logger.error(f"Error auto-closing position {position_id}: {e}")
+        logger.error(f"Error real auto-closing position {position_id}: {e}")
 
 async def update_position_prices():
     """Update position prices using REAL PancakeSwap data - MILLISECOND UPDATES"""
