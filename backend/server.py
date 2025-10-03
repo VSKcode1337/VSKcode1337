@@ -1391,12 +1391,22 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
             close_reason = f"⏰ Time limit reached ({max_time}min, actual: {position_age_minutes:.1f}min)"
             logger.info(f"⏰ {position.get('token_symbol')} TIME EXIT: {close_reason}")
         
-        # 3. Stop loss check (loss protection)
+        # 3. Stop loss check (DELAYED - give tokens time to pump first!)
         stop_loss = config.get("stop_loss_percent", 30)
-        if stop_loss > 0 and unrealized_pnl_percent <= -stop_loss:
+        if (stop_loss > 0 and 
+            unrealized_pnl_percent <= -stop_loss and 
+            position_age_minutes >= 2):  # Wait at least 2 minutes before stop loss
             should_close = True
-            close_reason = f"🛑 Stop loss triggered (-{stop_loss}%, actual: {unrealized_pnl_percent:.1f}%)"
+            close_reason = f"🛑 Stop loss triggered (-{stop_loss}%, actual: {unrealized_pnl_percent:.1f}%) after {position_age_minutes:.1f}min"
             logger.info(f"🛑 {position.get('token_symbol')} STOP LOSS: {close_reason}")
+        elif unrealized_pnl_percent <= -stop_loss and position_age_minutes < 2:
+            logger.info(f"⏳ {position.get('token_symbol')} waiting for pump ({unrealized_pnl_percent:.1f}% down, {position_age_minutes:.1f}min old)")
+        
+        # 4. Emergency crash protection (EXTREME losses)
+        if unrealized_pnl_percent <= -90 and position_age_minutes >= 1:  # 1 minute for extreme losses
+            should_close = True
+            close_reason = f"🆘 EMERGENCY: Extreme loss (-{abs(unrealized_pnl_percent):.1f}%) - likely scam token"
+            logger.info(f"🆘 {position.get('token_symbol')} EMERGENCY CLOSE: {close_reason}")
         
         if should_close:
             # Execute immediate auto-close
