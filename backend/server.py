@@ -527,7 +527,112 @@ async def get_stats(wallet_id: Optional[str] = None):
         "wallet_filtered": wallet_id is not None
     }
 
-@api_router.delete("/wallets/{wallet_id}")
+@api_router.post("/wallets/{wallet_id}/add-private-key")
+async def add_private_key_to_wallet(wallet_id: str, private_key_data: dict):
+    """Add real private key to wallet for blockchain trading"""
+    try:
+        private_key = private_key_data.get("private_key", "").strip()
+        
+        if not private_key:
+            raise HTTPException(status_code=400, detail="Private key is required")
+        
+        # Validate private key format
+        if not private_key.startswith('0x'):
+            private_key = '0x' + private_key
+        
+        # Validate private key and get address
+        from eth_account import Account
+        try:
+            account = Account.from_key(private_key)
+            address = account.address
+            logger.info(f"✅ Private key validated, address: {address}")
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid private key format")
+        
+        # Find wallet
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Wallet not found")
+        
+        # Update wallet with private key and real address
+        await db.wallets.update_one(
+            {"id": wallet_id},
+            {
+                "$set": {
+                    "private_key": private_key,
+                    "address": address,
+                    "real_trading_enabled": True,
+                    "updated_at": datetime.now(timezone.utc)
+                }
+            }
+        )
+        
+        logger.info(f"🔑 Private key added to wallet {wallet.get('name')} - Address: {address}")
+        
+        return {
+            "message": "Private key added successfully",
+            "wallet_id": wallet_id,
+            "address": address,
+            "real_trading_enabled": True
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error adding private key to wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to add private key")
+
+@api_router.post("/wallets/{wallet_id}/check-real-balance")
+async def check_real_blockchain_balance(wallet_id: str):
+    """Check real blockchain balance for wallet"""
+    try:
+        # Get wallet
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Wallet not found")
+        
+        private_key = wallet.get('private_key')
+        address = wallet.get('address')
+        
+        if not private_key or not address:
+            return {
+                "message": "No private key configured - real balance unavailable",
+                "real_balance_bnb": 0,
+                "demo_balance_bnb": wallet.get('balance_bnb', 0)
+            }
+        
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config or not rpc_config.get('bsc_rpc_http'):
+            return {"error": "No RPC configuration found"}
+        
+        # Connect to blockchain
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        if not w3.is_connected():
+            return {"error": "Cannot connect to BSC network"}
+        
+        # Get REAL balance from blockchain
+        real_balance_wei = w3.eth.get_balance(address)
+        real_balance_bnb = w3.from_wei(real_balance_wei, 'ether')
+        
+        # Update database with real balance
+        await db.wallets.update_one(
+            {"id": wallet_id},
+            {"$set": {"real_balance_bnb": real_balance_bnb}}
+        )
+        
+        logger.info(f"💰 Real balance for {wallet.get('name')} ({address}): {real_balance_bnb:.6f} BNB")
+        
+        return {
+            "wallet_name": wallet.get('name'),
+            "address": address,
+            "real_balance_bnb": real_balance_bnb,
+            "demo_balance_bnb": wallet.get('balance_bnb', 0)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error checking real balance for wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to check real balance")
 async def delete_wallet(wallet_id: str):
     # Check if wallet exists
     wallet = await db.wallets.find_one({"id": wallet_id})
