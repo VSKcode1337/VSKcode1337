@@ -428,8 +428,8 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 Real-time new token pair discoveries on PancakeSwap
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-96 overflow-y-auto">
+            <CardContent className="overflow-x-hidden">
+              <div className="space-y-3 max-h-96 overflow-y-auto overflow-x-hidden">
                 {detectedPairs.length === 0 ? (
                   <div className="text-center py-8 text-gray-400">
                     <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -437,31 +437,31 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                   </div>
                 ) : (
                   detectedPairs.map((pair) => (
-                    <div key={pair.id} className="flex items-center justify-between p-4 bg-gray-800/30 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors">
-                      <div className="flex items-center space-x-4">
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="font-semibold text-white">{pair.token_symbol}</span>
-                            <Badge variant={pair.risk_passed ? "default" : "destructive"} className="text-xs">
+                    <div key={pair.id} className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-0 p-3 md:p-4 bg-gray-800/30 rounded-lg border border-gray-700 hover:border-gray-600 transition-colors max-w-full">
+                      <div className="flex items-center space-x-3 md:space-x-4 min-w-0 flex-1">
+                        <div className="flex flex-col min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-white text-sm md:text-base truncate">{pair.token_symbol}</span>
+                            <Badge variant={pair.risk_passed ? "default" : "destructive"} className="text-xs flex-shrink-0">
                               {pair.risk_passed ? 'SAFE' : 'RISKY'}
                             </Badge>
                           </div>
-                          <span className="text-xs text-gray-400 font-mono">{pair.token_address?.slice(0, 8)}...</span>
+                          <span className="text-xs text-gray-400 font-mono truncate">{pair.token_address?.slice(0, 8)}...</span>
                         </div>
                       </div>
                       
-                      <div className="flex items-center space-x-6 text-sm">
-                        <div className="text-center">
-                          <div className="text-white font-semibold">${pair.liquidity_usd?.toLocaleString()}</div>
+                      <div className="flex items-center justify-between md:space-x-4 text-xs md:text-sm gap-2 flex-wrap">
+                        <div className="text-center min-w-0">
+                          <div className="text-white font-semibold text-xs md:text-sm">${pair.liquidity_usd?.toLocaleString()}</div>
                           <div className="text-gray-400 text-xs">Liquidity</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-white font-semibold">{pair.wbnb_reserves?.toFixed(2)} BNB</div>
+                        <div className="text-center min-w-0">
+                          <div className="text-white font-semibold text-xs md:text-sm">{pair.wbnb_reserves?.toFixed(2)} BNB</div>
                           <div className="text-gray-400 text-xs">WBNB Pool</div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-white font-semibold">
-                            {new Date().toLocaleTimeString('en-GB', { 
+                        <div className="text-center min-w-0 flex-shrink-0">
+                          <div className="text-white font-semibold text-xs md:text-sm whitespace-nowrap">
+                            {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
                               timeZone: 'Europe/London',
                               hour12: false,
                               hour: '2-digit',
