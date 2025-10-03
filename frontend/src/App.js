@@ -56,15 +56,17 @@ const AppContent = () => {
   useEffect(() => {
     let reconnectAttempts = 0;
     const maxReconnectAttempts = 10;
+    let websocketRef = null;
     
     const connectWebSocket = () => {
       try {
         const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
         console.log('Connecting to WebSocket:', wsUrl);
         const websocket = new WebSocket(wsUrl);
+        websocketRef = websocket;
 
         websocket.onopen = () => {
-          console.log('WebSocket connected successfully');
+          console.log('✅ WebSocket connected successfully');
           setIsConnected(true);
           setWs(websocket);
           reconnectAttempts = 0; // Reset attempts on successful connection
@@ -96,7 +98,7 @@ const AppContent = () => {
 
         websocket.onerror = (error) => {
           console.error('WebSocket error:', error);
-          setIsConnected(false);
+          // Don't set isConnected to false here - wait for onclose
         };
       } catch (error) {
         console.error('Failed to create WebSocket connection:', error);
@@ -108,8 +110,8 @@ const AppContent = () => {
     
     // Cleanup on unmount
     return () => {
-      if (ws) {
-        ws.close();
+      if (websocketRef) {
+        websocketRef.close();
       }
     };
   }, []);
