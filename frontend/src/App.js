@@ -273,11 +273,11 @@ const AppContent = () => {
             <div className="md:hidden">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">🎯</span>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img src="/paradox-logo.png" alt="Paradox Bot" className="w-full h-full object-contain" />
                   </div>
                   <div>
-                    <h1 className="text-lg font-bold text-white">PCS Sniper Bot</h1>
+                    <h1 className="text-lg font-bold text-white">Paradox Bot</h1>
                     <p className="text-gray-400 text-xs">DeFi Trading</p>
                   </div>
                 </div>
