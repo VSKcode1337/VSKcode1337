@@ -226,6 +226,14 @@ const ConfigPanel = () => {
                   >
                     {testingConnection ? 'Testing...' : 'Test Connection'}
                   </Button>
+                  <Button 
+                    onClick={saveRpcConfig}
+                    disabled={saving || !rpcConfig.bsc_rpc_http}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                    data-testid="save-rpc-btn"
+                  >
+                    {saving ? 'Saving...' : 'Save RPC Config'}
+                  </Button>
                 </div>
               </CardContent>
             </Card>
