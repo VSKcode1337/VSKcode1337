@@ -173,6 +173,27 @@ class BlockchainConfig:
             }
         ]
         
+        self.pair_abi = [
+            {"constant": True, "inputs": [], "name": "getReserves", "outputs": [
+                {"name": "_reserve0", "type": "uint112"},
+                {"name": "_reserve1", "type": "uint112"},
+                {"name": "_blockTimestampLast", "type": "uint32"}
+            ], "type": "function"},
+            {"constant": True, "inputs": [], "name": "token0", "outputs": [{"name": "", "type": "address"}], "type": "function"},
+            {"constant": True, "inputs": [], "name": "token1", "outputs": [{"name": "", "type": "address"}], "type": "function"}
+        ]
+        
+        self.erc20_abi = [
+            {"constant": True, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}], "type": "function"},
+            {"constant": True, "inputs": [], "name": "symbol", "outputs": [{"name": "", "type": "string"}], "type": "function"},
+            {"constant": True, "inputs": [], "name": "decimals", "outputs": [{"name": "", "type": "uint8"}], "type": "function"},
+            {"constant": True, "inputs": [], "name": "totalSupply", "outputs": [{"name": "", "type": "uint256"}], "type": "function"}
+        ]
+                "name": "PairCreated",
+                "type": "event"
+            }
+        ]
+        
         self.router_abi = [
             {
                 "inputs": [
