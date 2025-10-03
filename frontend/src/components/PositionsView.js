@@ -281,7 +281,7 @@ const PositionsView = ({ ws, selectedWalletId }) => {
                       {/* Actions */}
                       <div className="flex items-center justify-between pt-4 border-t border-gray-700">
                         <div className="text-xs text-gray-400">
-                          Entry: {new Date(position.entry_time).toLocaleString()}
+                          Entry: {new Date(new Date(position.entry_time).getTime() + (60 * 60 * 1000)).toLocaleString('en-GB')}
                         </div>
                         
                         <Button
