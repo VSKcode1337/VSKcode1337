@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 class WalletConfig(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
-    address: str
+    address: str = ""  # Will be derived from private key
     private_key: str  # Encrypted in production
     is_active: bool = True
     balance_bnb: float = 0.0
