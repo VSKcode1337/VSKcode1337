@@ -929,9 +929,9 @@ async def sell_tokens_to_bnb(position_id: str):
         
         logger.info(f"🔄 SELLING {actual_tokens:.2f} {position.get('token_symbol')} tokens back to BNB...")
         
-        # Execute REAL sell transaction on PancakeSwap
+        # Execute BULLETPROOF sell on PancakeSwap
         config = await db.trading_config.find_one({"is_active": True})
-        sell_tx_hash = await execute_real_pancakeswap_sell(
+        sell_tx_hash = await execute_bulletproof_pancakeswap_sell(
             w3, account, token_address, actual_tokens, config or {}
         )
         
