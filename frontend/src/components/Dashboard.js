@@ -145,7 +145,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-white">
-              {stats.win_rate_percent.toFixed(1)}%
+              {(stats.win_rate_percent || 0).toFixed(1)}%
             </div>
             <Progress 
               value={stats.win_rate_percent} 
