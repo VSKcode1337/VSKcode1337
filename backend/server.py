@@ -608,9 +608,8 @@ async def start_pair_monitoring():
             await asyncio.sleep(10)
 
 async def update_position_prices():
-    """Update position prices and P&L in real-time"""
-    import random
-    logger.info("Starting position price updates...")
+    """Update position prices and P&L in real-time using REAL blockchain data"""
+    logger.info("Starting position price updates (REAL MODE)...")
     
     while bot_state.is_running:
         try:
@@ -618,48 +617,61 @@ async def update_position_prices():
             open_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(1000)
             
             if not open_positions:
-                await asyncio.sleep(3)
+                await asyncio.sleep(5)
                 continue
             
             updated_positions = []
             
             for position in open_positions:
-                # Simulate price movement (-5% to +5% change)
-                price_change_percent = random.uniform(-5, 5)
-                current_price = position.get("current_price", position.get("entry_price", 0))
-                new_price = current_price * (1 + price_change_percent / 100)
-                
-                # Calculate new values
-                tokens_held = position.get("tokens_held", 0)
-                new_value_usd = new_price * tokens_held
-                entry_amount_usd = position.get("entry_amount_usd", 0)
-                
-                # Calculate P&L
-                unrealized_pnl_usd = new_value_usd - entry_amount_usd
-                unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
-                
-                # Update in database
-                await db.positions.update_one(
-                    {"id": position["id"]},
-                    {
-                        "$set": {
-                            "current_price": new_price,
-                            "current_value_usd": new_value_usd,
-                            "unrealized_pnl_usd": unrealized_pnl_usd,
-                            "unrealized_pnl_percent": unrealized_pnl_percent
+                try:
+                    # Get real price from pair contract
+                    pair_address = position.get("pair_address")
+                    if not pair_address:
+                        continue
+                    
+                    # Fetch current pair info
+                    pair_info = await get_pair_info(pair_address)
+                    if not pair_info:
+                        continue
+                    
+                    # Calculate new price from reserves
+                    new_price = pair_info['initial_price']
+                    
+                    # Calculate new values
+                    tokens_held = position.get("tokens_held", 0)
+                    new_value_usd = new_price * tokens_held * 600  # BNB price in USD
+                    entry_amount_usd = position.get("entry_amount_usd", 0)
+                    
+                    # Calculate P&L
+                    unrealized_pnl_usd = new_value_usd - entry_amount_usd
+                    unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
+                    
+                    # Update in database
+                    await db.positions.update_one(
+                        {"id": position["id"]},
+                        {
+                            "$set": {
+                                "current_price": new_price,
+                                "current_value_usd": new_value_usd,
+                                "unrealized_pnl_usd": unrealized_pnl_usd,
+                                "unrealized_pnl_percent": unrealized_pnl_percent
+                            }
                         }
-                    }
-                )
-                
-                # Add to broadcast list
-                updated_positions.append({
-                    "id": position["id"],
-                    "token_symbol": position.get("token_symbol", ""),
-                    "current_price": new_price,
-                    "current_value_usd": new_value_usd,
-                    "unrealized_pnl_usd": unrealized_pnl_usd,
-                    "unrealized_pnl_percent": unrealized_pnl_percent
-                })
+                    )
+                    
+                    # Add to broadcast list
+                    updated_positions.append({
+                        "id": position["id"],
+                        "token_symbol": position.get("token_symbol", ""),
+                        "current_price": new_price,
+                        "current_value_usd": new_value_usd,
+                        "unrealized_pnl_usd": unrealized_pnl_usd,
+                        "unrealized_pnl_percent": unrealized_pnl_percent
+                    })
+                    
+                except Exception as e:
+                    logger.error(f"Error updating position {position.get('id')}: {e}")
+                    continue
             
             # Broadcast updates to connected clients
             if updated_positions:
@@ -671,11 +683,11 @@ async def update_position_prices():
                     }
                 })
             
-            await asyncio.sleep(3)  # Update every 3 seconds
+            await asyncio.sleep(10)  # Update every 10 seconds (blockchain rate limit friendly)
             
         except Exception as e:
             logger.error(f"Error updating position prices: {e}")
-            await asyncio.sleep(5)
+            await asyncio.sleep(10)
 
 async def create_demo_position():
     """Create a demo trading position for testing"""
