@@ -49,6 +49,7 @@ const AppContent = () => {
     last_block: null
   });
   const [ws, setWs] = useState(null);
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Initialize WebSocket connection
   useEffect(() => {
