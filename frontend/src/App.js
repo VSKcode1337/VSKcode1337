@@ -205,16 +205,18 @@ const AppContent = () => {
             {/* Desktop Header */}
             <div className="hidden md:flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center">
+                <div className="w-16 h-16 rounded-xl flex items-center justify-center">
                   <img src="/paradox-logo.svg" alt="Paradox Bot" className="w-full h-full" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-white">Paradox Bot</h1>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                    Paradox Bot
+                  </h1>
                   <p className="text-gray-400 text-sm">High-Frequency DeFi Trading</p>
                 </div>
               </div>
               
-              <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-8">
                 {/* Current Time */}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-300">
@@ -225,41 +227,34 @@ const AppContent = () => {
                   </span>
                 </div>
                 
-                {/* WebSocket Status */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    isConnected 
-                      ? 'bg-green-500 animate-pulse' 
-                      : 'bg-red-500'
-                  }`}></div>
-                  <span className="text-sm text-gray-300">
-                    WebSocket: {isConnected ? 'Connected' : 'Disconnected'}
-                  </span>
-                  {!isConnected && (
-                    <button 
-                      onClick={() => window.location.reload()} 
-                      className="text-xs text-blue-400 hover:text-blue-300 underline"
-                    >
-                      Reconnect
-                    </button>
-                  )}
-                </div>
-                
-                {/* Blockchain Status */}
-                <div className="flex items-center space-x-2">
-                  <div className={`w-3 h-3 rounded-full ${
-                    botStatus.blockchain_connected 
-                      ? 'bg-green-500 animate-pulse' 
-                      : 'bg-red-500'
-                  }`}></div>
-                  <span className="text-sm text-gray-300">
-                    Blockchain: {botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
-                  </span>
-                </div>
-                
-                {/* Bot Status */}
-                <div className="flex items-center space-x-2">
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
+                {/* Status Indicators */}
+                <div className="flex items-center gap-4 px-4 py-2 bg-gray-800/30 rounded-lg border border-gray-700">
+                  {/* WebSocket Status */}
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${
+                      isConnected 
+                        ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                        : 'bg-red-500 shadow-lg shadow-red-500/50'
+                    }`}></div>
+                    <span className="text-xs text-gray-300 whitespace-nowrap">
+                      WS: {isConnected ? 'Connected' : 'Error'}
+                    </span>
+                  </div>
+                  
+                  {/* Blockchain Status */}
+                  <div className="flex items-center space-x-2">
+                    <div className={`w-2.5 h-2.5 rounded-full ${
+                      botStatus.blockchain_connected 
+                        ? 'bg-green-500 shadow-lg shadow-green-500/50' 
+                        : 'bg-red-500 shadow-lg shadow-red-500/50'
+                    }`}></div>
+                    <span className="text-xs text-gray-300 whitespace-nowrap">
+                      BC: {botStatus.blockchain_connected ? 'Connected' : 'Error'}
+                    </span>
+                  </div>
+                  
+                  {/* Bot Status */}
+                  <div className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                     botStatus.is_running 
                       ? 'bg-green-500/20 text-green-400 border border-green-500/30'
                       : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'
