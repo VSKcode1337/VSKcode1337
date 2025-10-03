@@ -384,7 +384,7 @@ const Dashboard = ({ botStatus, isConnected, isConnecting, ws }) => {
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${
                 isConnected 
-                  ? 'bg-green-500 shadow-sm shadow-green-500/50' 
+                  ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
                   : isConnecting
                   ? 'bg-yellow-500 shadow-sm shadow-yellow-500/50 animate-pulse'
                   : 'bg-red-500 shadow-sm shadow-red-500/50'
@@ -394,7 +394,7 @@ const Dashboard = ({ botStatus, isConnected, isConnecting, ws }) => {
             <div className="flex items-center gap-2">
               <div className={`w-2 h-2 rounded-full ${
                 botStatus.blockchain_connected 
-                  ? 'bg-green-500 shadow-sm shadow-green-500/50' 
+                  ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
                   : 'bg-red-500 shadow-sm shadow-red-500/50'
               }`}></div>
               <span className="text-sm text-gray-300">Blockchain</span>
