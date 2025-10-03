@@ -380,6 +380,34 @@ async def get_detected_pairs():
     pairs = await db.detected_pairs.find().sort("detected_at", -1).limit(50).to_list(50)
     return [NewPairEvent(**pair) for pair in pairs]
 
+@api_router.delete("/pairs/detected")
+async def reset_detected_pairs():
+    """Reset/clear all detected pairs from database"""
+    try:
+        result = await db.detected_pairs.delete_many({})
+        logger.info(f"🗑️ Cleared {result.deleted_count} detected pairs from database")
+        
+        # Also reset the stats counter
+        await db.stats.update_one(
+            {},
+            {"$set": {"pairs_detected": 0}},
+            upsert=True
+        )
+        
+        # Broadcast reset event to all connected clients
+        await bot_state.broadcast_to_clients({
+            "type": "pairs_reset",
+            "data": {"cleared_count": result.deleted_count}
+        })
+        
+        return {
+            "message": f"Successfully cleared {result.deleted_count} detected pairs",
+            "cleared_count": result.deleted_count
+        }
+    except Exception as e:
+        logger.error(f"Error clearing detected pairs: {e}")
+        raise HTTPException(status_code=500, detail="Failed to clear detected pairs")
+
 @api_router.get("/stats", response_model=TradingStats)
 async def get_trading_stats():
     # Get the actual count of detected pairs from database
