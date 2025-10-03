@@ -903,12 +903,15 @@ async def scan_pairs_via_http():
                 # Get token info
                 token_info = await get_token_info(pair_info['token_address'])
                 
-                # Create NewPairEvent
+                # Create NewPairEvent with useful links
+                token_address = pair_info['token_address'].lower()
+                pair_address_lower = pair_address.lower()
+                
                 new_pair = NewPairEvent(
-                    pair_address=pair_address.lower(),
+                    pair_address=pair_address_lower,
                     token0_address=token0.lower(),
                     token1_address=token1.lower(),
-                    token_address=pair_info['token_address'].lower(),
+                    token_address=token_address,
                     token_symbol=token_info['symbol'],
                     token_name=token_info['name'],
                     wbnb_reserves=pair_info['wbnb_reserves'],
@@ -917,7 +920,12 @@ async def scan_pairs_via_http():
                     initial_price=pair_info['initial_price'],
                     block_number=event['blockNumber'],
                     transaction_hash=event['transactionHash'].hex(),
-                    detected_at=datetime.now(timezone.utc)
+                    detected_at=datetime.now(timezone.utc),
+                    # Generate useful links for token analysis and trading
+                    dexscreener_url=f"https://dexscreener.com/bsc/{token_address}",
+                    bscscan_token_url=f"https://bscscan.com/token/{token_address}",
+                    bscscan_pair_url=f"https://bscscan.com/address/{pair_address_lower}",
+                    pancakeswap_url=f"https://pancakeswap.finance/swap?outputCurrency={token_address}"
                 )
                 
                 # Store in database
