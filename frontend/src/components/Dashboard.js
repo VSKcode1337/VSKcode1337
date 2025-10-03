@@ -385,8 +385,6 @@ const Dashboard = ({ botStatus, isConnected, isConnecting, ws }) => {
               <div className={`w-2 h-2 rounded-full ${
                 isConnected 
                   ? 'bg-green-500 shadow-sm shadow-green-500/50 animate-pulse' 
-                  : isConnecting
-                  ? 'bg-yellow-500 shadow-sm shadow-yellow-500/50 animate-pulse'
                   : 'bg-red-500 shadow-sm shadow-red-500/50'
               }`}></div>
               <span className="text-sm text-gray-300">WebSocket</span>
