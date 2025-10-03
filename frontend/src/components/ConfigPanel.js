@@ -397,21 +397,24 @@ const ConfigPanel = () => {
                 
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-red-500 text-red-400 hover:bg-red-500/10"
                   onClick={() => {
                     setConfig(prev => ({
                       ...prev,
-                      trade_amount_usd: 100,
-                      max_tax_buy_percent: 10,
-                      max_tax_sell_percent: 10,
-                      min_liquidity_usd: 10000,
-                      stop_loss_percent: 70
+                      trade_amount_usd: 25,
+                      max_tax_buy_percent: 2,
+                      max_tax_sell_percent: 2,
+                      min_liquidity_usd: 200000,
+                      stop_loss_percent: 15,
+                      take_profit_targets: [2, 3, 4],
+                      take_profit_percentages: [70, 20, 10],
+                      max_position_time_minutes: 10,
+                      slippage_tolerance_percent: 6
                     }));
-                    toast.info('Applied Aggressive preset');
+                    toast.info('Applied ULTRA SAFE preset');
                   }}
                 >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
-                  Aggressive (High Risk)
+                  🛡️ ULTRA SAFE (Highest Win Rate)
                 </Button>
               </CardContent>
             </Card>
