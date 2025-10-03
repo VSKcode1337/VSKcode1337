@@ -615,10 +615,17 @@ async def check_real_blockchain_balance(wallet_id: str):
         real_balance_wei = w3.eth.get_balance(address)
         real_balance_bnb = float(w3.from_wei(real_balance_wei, 'ether'))  # Convert to float for JSON
         
-        # Update database with real balance
+        # Update database with real balance AND private key data
         await db.wallets.update_one(
             {"id": wallet_id},
-            {"$set": {"real_balance_bnb": real_balance_bnb}}
+            {
+                "$set": {
+                    "real_balance_bnb": real_balance_bnb,
+                    "real_balance_usd": real_balance_bnb * 600,  # Approximate USD value
+                    "last_balance_check": datetime.now(timezone.utc),
+                    "blockchain_verified": True
+                }
+            }
         )
         
         logger.info(f"💰 Real balance for {wallet.get('name')} ({address}): {real_balance_bnb:.6f} BNB")
