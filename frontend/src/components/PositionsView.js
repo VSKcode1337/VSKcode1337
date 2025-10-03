@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const PositionsView = ({ ws }) => {
+const PositionsView = ({ ws, selectedWalletId }) => {
   const [positions, setPositions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [closingPosition, setClosingPosition] = useState(null);
@@ -20,7 +20,7 @@ const PositionsView = ({ ws }) => {
     fetchPositions();
     const interval = setInterval(fetchPositions, 10000); // Update every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedWalletId]); // Refresh when wallet changes
 
   // Listen for WebSocket updates
   useEffect(() => {
@@ -43,7 +43,10 @@ const PositionsView = ({ ws }) => {
 
   const fetchPositions = async () => {
     try {
-      const response = await axios.get(`${API}/positions`);
+      const positionsUrl = selectedWalletId 
+        ? `${API}/positions?wallet_id=${selectedWalletId}` 
+        : `${API}/positions`;
+      const response = await axios.get(positionsUrl);
       setPositions(response.data);
     } catch (error) {
       console.error('Failed to fetch positions:', error);
