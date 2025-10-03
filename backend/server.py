@@ -377,6 +377,7 @@ async def start_sniper(background_tasks: BackgroundTasks):
     # Use asyncio.create_task for long-running background tasks
     asyncio.create_task(start_pair_monitoring())
     asyncio.create_task(update_position_prices())
+    asyncio.create_task(auto_update_wallet_balances())  # Auto-update balances every 5s
     
     await bot_state.broadcast_to_clients({
         "type": "status_update",
