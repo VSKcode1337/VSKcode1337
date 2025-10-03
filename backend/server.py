@@ -1943,11 +1943,14 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
         amounts_out = router_contract.functions.getAmountsOut(token_amount_wei, path).call()
         expected_bnb = amounts_out[-1]
         
-        # Apply slippage protection
-        slippage_percent = config.get('slippage_tolerance_percent', 12)
+        # Apply AGGRESSIVE slippage protection for volatile tokens
+        slippage_percent = config.get('slippage_tolerance_percent', 25)  # Default 25% for new tokens
+        if slippage_percent < 15:  # Ensure minimum 15% for new tokens
+            slippage_percent = 25
+            
         min_bnb = int(expected_bnb * (100 - slippage_percent) / 100)
         
-        logger.info(f"💱 REAL SELL: {token_amount} tokens -> Expected: {w3.from_wei(expected_bnb, 'ether')} BNB")
+        logger.info(f"💱 REAL SELL: {token_amount} tokens → Expected: {w3.from_wei(expected_bnb, 'ether'):.8f} BNB (min: {w3.from_wei(min_bnb, 'ether'):.8f} @ {slippage_percent}% slippage)")
         
         # Setup deadline
         deadline = int(time.time()) + 600
