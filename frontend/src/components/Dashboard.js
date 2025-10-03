@@ -67,6 +67,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       
       const allPositions = positionsRes.data;
       const wallets = walletsRes.data;
+      const detectedPairs = pairsRes.data;
       
       // Add wallet names to positions
       const positionsWithWallets = allPositions.map(position => {
@@ -77,10 +78,18 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         };
       });
       
+      const openPositions = positionsWithWallets.filter(p => p.status === 'open');
       const closedPositions = positionsWithWallets.filter(p => p.status === 'closed');
       
-      // Calculate real stats from actual positions
-      const totalPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
+      // Calculate REALIZED PnL (from closed positions only)
+      const realizedPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
+      
+      // Calculate UNREALIZED PnL (from open positions only)  
+      const unrealizedPnL = openPositions.reduce((sum, p) => sum + (p.unrealized_pnl_usd || 0), 0);
+      
+      // Calculate TOTAL PnL (realized + unrealized)
+      const totalPnL = realizedPnL + unrealizedPnL;
+      
       const winningTrades = closedPositions.filter(p => (p.realized_pnl_usd || p.unrealized_pnl_usd || 0) > 0).length;
       const totalTrades = closedPositions.length;
       const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
@@ -89,10 +98,14 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       const calculatedStats = {
         ...statsRes.data,
         total_pnl_usd: totalPnL,
+        realized_pnl_usd: realizedPnL,
+        unrealized_pnl_usd: unrealizedPnL,
         winning_trades: winningTrades,
         losing_trades: totalTrades - winningTrades,
         total_trades: totalTrades,
-        win_rate_percent: winRate
+        win_rate_percent: winRate,
+        pairs_detected: detectedPairs.length,  // Sync with actual detected pairs
+        pairs_traded: totalTrades
       };
       
       setPositions(positionsWithWallets);
