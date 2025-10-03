@@ -137,7 +137,7 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId }) => {
       // ALWAYS set loading to false, regardless of any errors
       setLoading(false);
     }
-  }, []);
+  }, [selectedWalletId]); // Refresh when wallet changes
 
   useEffect(() => {
     fetchDashboardData();
