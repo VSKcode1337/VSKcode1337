@@ -35,7 +35,8 @@ const NavButton = ({ href, label }) => {
   );
 };
 
-function App() {
+// Main App Content Component
+const AppContent = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [botStatus, setBotStatus] = useState({
     is_running: false,
