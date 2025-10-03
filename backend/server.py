@@ -134,6 +134,14 @@ class TradingStats(BaseModel):
     pairs_traded: int = 0
     last_updated: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
+class RPCConfig(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    bsc_rpc_http: str = "https://bsc-dataseed1.binance.org/"
+    bsc_rpc_ws: str = ""
+    bscscan_api_key: str = ""
+    is_active: bool = True
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
 # ==================== BLOCKCHAIN CONFIG ====================
 
 class BlockchainConfig:
