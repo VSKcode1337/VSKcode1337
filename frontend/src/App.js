@@ -60,7 +60,6 @@ const AppContent = () => {
     
     const connectWebSocket = () => {
       try {
-        setIsConnecting(true); // Set connecting state
         const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
         console.log('Connecting to WebSocket:', wsUrl);
         const websocket = new WebSocket(wsUrl);
@@ -69,9 +68,8 @@ const AppContent = () => {
         websocket.onopen = () => {
           console.log('✅ WebSocket connected successfully');
           setIsConnected(true);
-          setIsConnecting(false); // Clear connecting state
           setWs(websocket);
-          reconnectAttempts = 0; // Reset attempts on successful connection
+          reconnectAttempts = 0;
         };
 
         websocket.onmessage = (event) => {
@@ -86,13 +84,10 @@ const AppContent = () => {
         websocket.onclose = (event) => {
           console.log('WebSocket disconnected:', event.code, event.reason);
           setIsConnected(false);
-          setIsConnecting(false);
           setWs(null);
           
-          // Try to reconnect if under max attempts
           if (reconnectAttempts < maxReconnectAttempts) {
             reconnectAttempts++;
-            setIsConnecting(true); // Show connecting during reconnect
             console.log(`Reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} in 3 seconds...`);
             setTimeout(connectWebSocket, 3000);
           } else {
@@ -102,12 +97,10 @@ const AppContent = () => {
 
         websocket.onerror = (error) => {
           console.error('WebSocket error:', error);
-          // Don't set isConnected to false here - wait for onclose
         };
       } catch (error) {
         console.error('Failed to create WebSocket connection:', error);
         setIsConnected(false);
-        setIsConnecting(false);
       }
     };
 
