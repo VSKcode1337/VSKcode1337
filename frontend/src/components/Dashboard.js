@@ -381,85 +381,26 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Status Indicators */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-300 mb-3">Connection Status</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
-                  <span className="text-sm text-gray-300">WebSocket</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
-                  <span className="text-sm text-gray-300">Blockchain</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">Block:</span>
-                  <span className="text-sm text-white font-mono">
-                    {botStatus.last_block?.toLocaleString() || 'N/A'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-400">Clients:</span>
-                  <span className="text-sm text-white">
-                    {botStatus.connected_clients}
-                  </span>
-                </div>
-              </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
+              <span className="text-sm text-gray-300">WebSocket</span>
             </div>
-
-            {/* Paradox Configuration Toggles */}
-            <div className="space-y-4">
-              <h3 className="text-sm font-medium text-gray-300 mb-3">Quick Controls</h3>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm text-gray-300 font-medium">Auto Trading</span>
-                    <p className="text-xs text-gray-400">Enable automatic position execution</p>
-                  </div>
-                  <ProfessionalToggle 
-                    checked={botStatus.is_running}
-                    onCheckedChange={botStatus.is_running ? stopSniper : startSniper}
-                    leftLabel="OFF"
-                    rightLabel="ON"
-                    leftColor="bg-red-600"
-                    rightColor="bg-green-500"
-                    size="lg"
-                  />
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm text-gray-300 font-medium">Pair Detection</span>
-                    <p className="text-xs text-gray-400">Monitor new PancakeSwap pairs</p>
-                  </div>
-                  <ProfessionalToggle 
-                    checked={botStatus.is_running}
-                    onCheckedChange={() => {}}
-                    leftLabel="OFF"
-                    rightLabel="ON"
-                    leftColor="bg-gray-600"
-                    rightColor="bg-blue-500"
-                    disabled={!botStatus.is_running}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <span className="text-sm text-gray-300 font-medium">Risk Management</span>
-                    <p className="text-xs text-gray-400">Stop loss & take profit enabled</p>
-                  </div>
-                  <ProfessionalToggle 
-                    checked={true}
-                    onCheckedChange={() => {}}
-                    leftLabel="OFF"
-                    rightLabel="ON"
-                    leftColor="bg-yellow-600"
-                    rightColor="bg-green-500"
-                  />
-                </div>
-              </div>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-green-500 shadow-sm shadow-green-500/50 animate-pulse"></div>
+              <span className="text-sm text-gray-300">Blockchain</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Block:</span>
+              <span className="text-sm text-white font-mono">
+                {botStatus.last_block?.toLocaleString() || 'N/A'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-400">Clients:</span>
+              <span className="text-sm text-white">
+                {botStatus.connected_clients}
+              </span>
             </div>
           </div>
         </CardContent>
