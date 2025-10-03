@@ -1175,6 +1175,57 @@ async def websocket_endpoint(websocket: WebSocket):
 
 # ==================== BACKGROUND TASKS ====================
 
+async def auto_update_wallet_balances():
+    """Automatically update real wallet balances every 5 seconds"""
+    logger.info("🔄 Starting automatic wallet balance updates...")
+    
+    while bot_state.is_running:
+        try:
+            # Get all wallets with private keys
+            wallets = await db.wallets.find({
+                "is_active": True,
+                "private_key": {"$exists": True, "$ne": None, "$ne": ""}
+            }).to_list(10)
+            
+            for wallet in wallets:
+                try:
+                    # Get RPC config
+                    rpc_config = await db.rpc_config.find_one({"is_active": True})
+                    if not rpc_config:
+                        continue
+                    
+                    w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+                    from eth_account import Account
+                    account = Account.from_key(wallet['private_key'])
+                    
+                    # Get REAL balance from blockchain
+                    real_balance_wei = w3.eth.get_balance(account.address)
+                    real_balance_bnb = float(w3.from_wei(real_balance_wei, 'ether'))
+                    real_balance_usd = real_balance_bnb * 1170  # Current BNB price
+                    
+                    # Update database with fresh balance
+                    await db.wallets.update_one(
+                        {"id": wallet["id"]},
+                        {
+                            "$set": {
+                                "real_balance_bnb": real_balance_bnb,
+                                "real_balance_usd": real_balance_usd,
+                                "last_balance_update": datetime.now(timezone.utc)
+                            }
+                        }
+                    )
+                    
+                    logger.info(f"💰 Auto-updated {wallet['name']}: {real_balance_bnb:.6f} BNB (${real_balance_usd:.2f})")
+                    
+                except Exception as e:
+                    logger.error(f"Error updating balance for wallet {wallet.get('name')}: {e}")
+                    
+            await asyncio.sleep(5)  # Update every 5 seconds
+            
+        except Exception as e:
+            logger.error(f"Error in wallet balance auto-update: {e}")
+            await asyncio.sleep(10)
+
 async def start_pair_monitoring():
     """Start monitoring for new pairs"""
     logger.info("Starting pair monitoring (REAL MODE)...")
