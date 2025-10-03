@@ -44,7 +44,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
   useEffect(() => {
     // Initialize with current detected pairs length if available
     if (detectedPairs.length > 0) {
-      setLivePairsCount(50 + detectedPairs.length);
+      setLivePairsCount(detectedPairs.length);
     }
   }, [detectedPairs.length]);
 
