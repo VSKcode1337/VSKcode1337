@@ -644,6 +644,17 @@ async def create_demo_position():
     demo_position.unrealized_pnl_usd = demo_position.current_value_usd - demo_position.entry_amount_usd
     demo_position.unrealized_pnl_percent = (demo_position.unrealized_pnl_usd / demo_position.entry_amount_usd) * 100
     
+    # Deduct trade amount from wallet balance
+    bnb_price = 600  # Assuming 1 BNB = ~$600 for demo
+    bnb_spent = demo_position.entry_amount_bnb
+    
+    new_wallet_balance = wallet["balance_bnb"] - bnb_spent
+    await db.wallets.update_one(
+        {"id": wallet["id"]},
+        {"$set": {"balance_bnb": max(0, new_wallet_balance)}}  # Ensure balance doesn't go negative
+    )
+    logger.info(f"Wallet {wallet.get('name')} updated: -{bnb_spent:.4f} BNB (new balance: {max(0, new_wallet_balance):.4f} BNB)")
+    
     # Store in database
     await db.positions.insert_one(demo_position.dict())
     
