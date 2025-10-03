@@ -1520,12 +1520,12 @@ async def update_position_prices():
                     }
                 })
             
-            # Update every 500ms for REAL-TIME millisecond accuracy
-            await asyncio.sleep(0.5)
+            # Update every 1 second for INSTANT buy/sell execution
+            await asyncio.sleep(1)
             
         except Exception as e:
             logger.error(f"Error updating REAL prices: {e}")
-            await asyncio.sleep(1)
+            await asyncio.sleep(2)
 
 async def calculate_tokens_from_receipt(w3, receipt, token_address, wallet_address):
     """Calculate actual tokens received from transaction receipt"""
