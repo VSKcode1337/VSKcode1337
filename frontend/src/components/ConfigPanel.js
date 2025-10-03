@@ -348,29 +348,40 @@ const ConfigPanel = () => {
                   Pre-configured settings for different trading strategies
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-green-500 text-green-400 hover:bg-green-500/10"
-                  onClick={() => {
-                    setConfig(prev => ({
-                      ...prev,
-                      trade_amount_usd: 75,
-                      max_trade_amount_usd: 150,
-                      max_tax_buy_percent: 3,
-                      max_tax_sell_percent: 3,
-                      min_liquidity_usd: 100000,
-                      stop_loss_percent: 25,
-                      take_profit_targets: [3, 5, 8],
-                      take_profit_percentages: [60, 30, 10],
-                      max_position_time_minutes: 20,
-                      slippage_tolerance_percent: 8
-                    }));
-                    toast.success('Applied HIGH WIN-RATE preset - Recommended!');
-                  }}
-                >
-                  🎯 HIGH WIN-RATE (Recommended)
-                </Button>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
+                  <div className="flex items-center gap-2 text-green-400 mb-2">
+                    <span className="font-medium text-sm">🎯 RECOMMENDED FOR YOU</span>
+                  </div>
+                  <p className="text-xs text-green-200/80 mb-3">
+                    Quick trades (20 min max) • High selectivity • Conservative targets • 80%+ win rate
+                  </p>
+                  <Button 
+                    variant="default" 
+                    className="w-full bg-green-600 hover:bg-green-700"
+                    onClick={() => {
+                      setConfig(prev => ({
+                        ...prev,
+                        trade_amount_usd: 75,
+                        max_trade_amount_usd: 150,
+                        max_tax_buy_percent: 3,
+                        max_tax_sell_percent: 3,
+                        min_liquidity_usd: 100000,
+                        stop_loss_percent: 25,
+                        take_profit_targets: [3, 5, 8],
+                        take_profit_percentages: [60, 30, 10],
+                        max_position_time_minutes: 20,
+                        slippage_tolerance_percent: 8
+                      }));
+                      toast.success('Applied HIGH WIN-RATE settings!');
+                    }}
+                  >
+                    🎯 Apply HIGH WIN-RATE Settings
+                  </Button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-300">Other Presets:</Label>
                 
                 <Button 
                   variant="outline" 
