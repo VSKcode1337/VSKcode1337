@@ -739,8 +739,7 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId, availableWall
                       <div>
                         <div className="text-white text-sm font-medium">{position.token_symbol}</div>
                         <div className="text-gray-400 text-xs">
-                          👛 {position.wallet_name} • {new Date(position.entry_time).toLocaleTimeString('en-GB', { 
-                            timeZone: 'Europe/London',
+                          👛 {position.wallet_name} • {new Date(new Date(position.entry_time).getTime() + (60 * 60 * 1000)).toLocaleTimeString('en-GB', { 
                             hour12: false,
                             hour: '2-digit',
                             minute: '2-digit'
