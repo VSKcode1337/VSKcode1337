@@ -280,13 +280,20 @@ async def get_wallets():
     return [WalletConfig(**wallet) for wallet in wallets]
 
 @api_router.post("/wallets", response_model=WalletConfig)
-async def add_wallet(wallet: WalletConfig):
-    # Validate the private key
+async def add_wallet(wallet_input: WalletInput):
+    # Validate the private key and create full wallet config
     try:
-        account = Account.from_key(wallet.private_key)
-        wallet.address = account.address
+        account = Account.from_key(wallet_input.private_key)
+        
+        # Create full wallet config
+        wallet = WalletConfig(
+            name=wallet_input.name,
+            address=account.address,
+            private_key=wallet_input.private_key
+        )
+        
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid private key: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Invalid private key format. Please check your private key.")
     
     await db.wallets.insert_one(wallet.dict())
     bot_state.wallets.append(wallet)
