@@ -2006,6 +2006,84 @@ async def startup_event():
         await db.trading_config.insert_one(optimized_config.dict())
         bot_state.trading_config = optimized_config
 
+@api_router.post("/wallets/{wallet_id}/sync-real-tokens")
+async def sync_real_token_balances(wallet_id: str):
+    """Sync actual token balances from blockchain for all positions"""
+    try:
+        # Get wallet
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Wallet not found")
+        
+        private_key = wallet.get('private_key')
+        if not private_key:
+            raise HTTPException(status_code=400, detail="No private key - cannot check token balances")
+        
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config:
+            raise HTTPException(status_code=500, detail="No RPC configuration")
+        
+        # Connect to blockchain
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        from eth_account import Account
+        account = Account.from_key(private_key)
+        
+        # Get all positions for this wallet
+        positions = await db.positions.find({"wallet_id": wallet_id, "status": "open"}).to_list(100)
+        
+        synced_count = 0
+        for position in positions:
+            try:
+                token_address = position.get("token_address")
+                if not token_address:
+                    continue
+                
+                # Get real token balance from blockchain
+                token_contract = w3.eth.contract(
+                    address=Web3.to_checksum_address(token_address),
+                    abi=ERC20_ABI
+                )
+                
+                token_balance_wei = token_contract.functions.balanceOf(account.address).call()
+                decimals = token_contract.functions.decimals().call()
+                actual_tokens = token_balance_wei / (10 ** decimals)
+                
+                # Calculate real entry price based on actual tokens and amount spent
+                entry_amount_usd = position.get("entry_amount_usd", 5)
+                real_entry_price = entry_amount_usd / actual_tokens if actual_tokens > 0 else 0
+                
+                # Update position with REAL data
+                await db.positions.update_one(
+                    {"id": position["id"]},
+                    {
+                        "$set": {
+                            "tokens_held": actual_tokens,
+                            "entry_price": real_entry_price,
+                            "current_price": real_entry_price,
+                            "current_value_usd": entry_amount_usd,
+                            "synced_from_blockchain": True
+                        }
+                    }
+                )
+                
+                synced_count += 1
+                logger.info(f"✅ Synced {position.get('token_symbol')}: {actual_tokens:.2f} tokens @ ${real_entry_price:.8f}")
+                
+            except Exception as e:
+                logger.error(f"Error syncing token {position.get('token_symbol')}: {e}")
+        
+        return {
+            "message": f"Successfully synced {synced_count} token balances",
+            "synced_positions": synced_count,
+            "wallet_address": account.address
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error syncing token balances for wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail="Failed to sync token balances")
 @app.on_event("shutdown")
 async def shutdown_event():
     logger.info("Paradox Bot API shutting down...")
