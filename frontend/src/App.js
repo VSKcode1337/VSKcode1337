@@ -263,11 +263,7 @@ const AppContent = () => {
                 <div className="text-gray-400 text-xs">
                   Block: {botStatus.last_block?.toLocaleString() || 'N/A'}
                 </div>
-              </div>
-            </div>
-            
-            <div className="hidden">
-              <div className="text-gray-400">
+              </div>>
                 
                 <div className="text-gray-400">
                   Block: {botStatus.last_block?.toLocaleString() || 'N/A'}
