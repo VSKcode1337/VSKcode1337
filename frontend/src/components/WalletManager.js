@@ -351,7 +351,7 @@ const WalletManager = ({ ws }) => {
                       variant="ghost"
                       size="sm"
                       onClick={() => togglePrivateKeyVisibility(wallet.id)}
-                      className="h-8 w-8 p-0"
+                      className="h-7 w-7 md:h-8 md:w-8 p-0 flex-shrink-0"
                     >
                       {showPrivateKeys[wallet.id] ? <EyeOff className="h-3 w-3" /> : <Eye className="h-3 w-3" />}
                     </Button>
@@ -361,14 +361,14 @@ const WalletManager = ({ ws }) => {
                 {/* Wallet Stats */}
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div className="bg-gray-800/30 p-2 rounded">
-                    <div className="text-gray-400">Created</div>
-                    <div className="text-white font-medium">
+                    <div className="text-gray-400 text-xs">Created</div>
+                    <div className="text-white font-medium text-xs">
                       {new Date(wallet.created_at).toLocaleDateString()}
                     </div>
                   </div>
                   <div className="bg-gray-800/30 p-2 rounded">
-                    <div className="text-gray-400">Status</div>
-                    <div className={`font-medium ${
+                    <div className="text-gray-400 text-xs">Status</div>
+                    <div className={`font-medium text-xs ${
                       wallet.is_active ? 'text-green-400' : 'text-gray-400'
                     }`}>
                       {wallet.is_active ? 'Ready' : 'Inactive'}
@@ -376,13 +376,13 @@ const WalletManager = ({ ws }) => {
                   </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 pt-2 border-t border-gray-700">
+                {/* Actions - Stack on mobile */}
+                <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-gray-700">
                   {wallet.name.toLowerCase().includes('test') || wallet.name.toLowerCase().includes('demo') ? (
                     <Button
                       variant="default"
                       size="sm"
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold text-xs sm:text-sm"
                       onClick={async () => {
                         try {
                           // Add demo funds for testing - ONLY for test wallets
@@ -402,7 +402,7 @@ const WalletManager = ({ ws }) => {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="flex-1 text-yellow-400 border-yellow-500"
+                      className="flex-1 text-yellow-400 border-yellow-500 text-xs sm:text-sm"
                       onClick={() => {
                         toast.info('This is a real wallet. Fund it manually with actual BNB from your exchange.', {
                           description: 'Send BNB using BEP20 (BSC) network to this address.'
@@ -418,10 +418,11 @@ const WalletManager = ({ ws }) => {
                       <Button
                         variant="destructive"
                         size="sm"
-                        className="h-9 w-9 p-0"
+                        className="h-9 w-full sm:w-9 p-0 sm:flex-shrink-0"
                         data-testid="delete-wallet-btn"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-4 w-4 sm:mr-0 mr-2" />
+                        <span className="sm:hidden">Delete Wallet</span>
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-gray-900 border-gray-700">
