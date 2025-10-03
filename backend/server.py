@@ -303,8 +303,8 @@ async def add_wallet(wallet_input: WalletInput):
             private_key=wallet_input.private_key
         )
         
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Invalid private key format. Please check your private key.")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid private key format. Please check your private key.")
     
     await db.wallets.insert_one(wallet.dict())
     bot_state.wallets.append(wallet)
