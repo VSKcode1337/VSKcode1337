@@ -1712,9 +1712,24 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
                 'chainId': 56
             })
             
-            # Sign and send approval
+            # Sign and send approval (Web3.py v7+ compatible)
             signed_approve = w3.eth.account.sign_transaction(approve_tx, account.key)
-            approve_hash = w3.eth.send_raw_transaction(signed_approve.rawTransaction)
+            
+            # Handle different Web3.py versions
+            try:
+                if hasattr(signed_approve, 'raw_transaction'):
+                    raw_transaction = signed_approve.raw_transaction
+                elif hasattr(signed_approve, 'rawTransaction'):
+                    raw_transaction = signed_approve.rawTransaction
+                else:
+                    raw_transaction = bytes(signed_approve)
+                    
+                approve_hash = w3.eth.send_raw_transaction(raw_transaction)
+                
+            except Exception as signing_error:
+                logger.error(f"Approve signing error: {signing_error}")
+                signed_bytes = signed_approve if isinstance(signed_approve, bytes) else signed_approve.raw_transaction
+                approve_hash = w3.eth.send_raw_transaction(signed_bytes)
             
             logger.info(f"🔓 APPROVAL SENT: {approve_hash.hex()}")
             
