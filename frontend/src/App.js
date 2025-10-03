@@ -490,10 +490,11 @@ const AppContent = () => {
               botStatus={botStatus} 
               isConnected={isConnected}
               ws={ws}
+              selectedWalletId={selectedWalletId}
               refreshTrigger={Date.now()} // Force refresh when props change
             />
           } />
-          <Route path="/positions" element={<PositionsView ws={ws} />} />
+          <Route path="/positions" element={<PositionsView ws={ws} selectedWalletId={selectedWalletId} />} />
           <Route path="/wallets" element={<WalletManager ws={ws} />} />
           <Route path="/config" element={<ConfigPanel />} />
           <Route path="/sniper" element={<SniperControl botStatus={botStatus} />} />
