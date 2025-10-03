@@ -405,7 +405,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Win Rate</span>
-                  <span className="text-white font-semibold">{stats.win_rate_percent.toFixed(1)}%</span>
+                  <span className="text-white font-semibold">{(stats.win_rate_percent || 0).toFixed(1)}%</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Detection Rate</span>
