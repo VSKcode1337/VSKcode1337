@@ -397,7 +397,7 @@ const ConfigPanel = () => {
                         max_trade_amount_usd: 150,
                         max_tax_buy_percent: 3,
                         max_tax_sell_percent: 3,
-                        min_liquidity_usd: 100000,
+                        min_liquidity_usd: 100,
                         stop_loss_percent: 25,
                         take_profit_targets: [3, 5, 8],
                         take_profit_percentages: [60, 30, 10],
