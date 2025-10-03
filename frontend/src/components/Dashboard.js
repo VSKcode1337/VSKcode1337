@@ -313,8 +313,16 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
                           <div className="text-gray-400 text-xs">WBNB Pool</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-white font-semibold">{new Date(pair.detected_at).toLocaleTimeString()}</div>
-                          <div className="text-gray-400 text-xs">Detected</div>
+                          <div className="text-white font-semibold">
+                            {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
+                              timeZone: 'Europe/London',
+                              hour12: false,
+                              hour: '2-digit',
+                              minute: '2-digit',
+                              second: '2-digit'
+                            })}
+                          </div>
+                          <div className="text-gray-400 text-xs">London Time</div>
                         </div>
                         <Badge variant={pair.action_taken === 'bought' ? 'default' : 'secondary'}>
                           {pair.action_taken.toUpperCase()}
