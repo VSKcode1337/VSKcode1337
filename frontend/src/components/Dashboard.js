@@ -28,7 +28,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
   const [totalPairsDetected, setTotalPairsDetected] = useState(0);
 
   const fetchDashboardData = useCallback(async () => {
-    try:
+    try {
       // Fetch each endpoint individually with error handling
       let positionsData = [];
       let detectedPairsData = [];
