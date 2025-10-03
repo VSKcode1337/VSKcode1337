@@ -336,24 +336,37 @@ const WalletManager = () => {
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t border-gray-700">
-                  <Button
-                    variant="default"
-                    size="sm"
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
-                    onClick={async () => {
-                      try {
-                        // Add demo funds for testing
-                        const response = await axios.post(`${API}/wallets/${wallet.id}/add-demo-funds`);
-                        toast.success(`Added ${response.data.amount} BNB demo funds!`);
-                        await fetchWallets(); // Refresh to show new balance
-                      } catch (error) {
-                        toast.error('Failed to add demo funds');
-                      }
-                    }}
-                    data-testid="add-demo-funds-btn"
-                  >
-                    💰 Add Demo Funds
-                  </Button>
+                  {wallet.name.toLowerCase().includes('test') || wallet.name.toLowerCase().includes('demo') ? (
+                    <Button
+                      variant="default"
+                      size="sm"
+                      className="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold"
+                      onClick={async () => {
+                        try {
+                          // Add demo funds for testing - ONLY for test wallets
+                          const response = await axios.post(`${API}/wallets/${wallet.id}/add-demo-funds`);
+                          toast.success(`Added ${response.data.amount} BNB demo funds!`);
+                          await fetchWallets(); // Refresh to show new balance
+                        } catch (error) {
+                          toast.error('Failed to add demo funds');
+                        }
+                      }}
+                      data-testid="add-demo-funds-btn"
+                    >
+                      💰 Add Demo Funds
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        toast.info('Demo funds only available for test wallets. Real wallets require actual BNB funding.');
+                      }}
+                    >
+                      Real Wallet - Fund Manually
+                    </Button>
+                  )}
                   
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
