@@ -759,7 +759,7 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             entry_price=detected_pair.initial_price,
             current_price=detected_pair.initial_price,
             current_value_usd=trade_amount_usd,
-            token_amount=trade_amount_usd / detected_pair.initial_price if detected_pair.initial_price > 0 else 1000,
+            tokens_held=trade_amount_usd / detected_pair.initial_price if detected_pair.initial_price > 0 else 1000,
             entry_time=datetime.now(timezone.utc),
             status="open",
             unrealized_pnl_usd=0.0,
