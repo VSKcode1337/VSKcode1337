@@ -881,63 +881,54 @@ async def update_position_prices():
             
             for position in open_positions:
                 try:
-                    # REALISTIC NEW TOKEN LISTING VOLATILITY SIMULATION
-                    import random
+                    # GET REAL PANCAKESWAP PRICES - NO SIMULATION!
+                    token_address = position.get("token_address")
+                    if not token_address:
+                        continue
                     
-                    entry_price = position.get("entry_price", 0.50)
-                    entry_amount_usd = position.get("entry_amount_usd", 50)
+                    # Step 1: Get REAL price from DexScreener API (matches the links!)
+                    real_price_data = await get_real_time_token_price(token_address)
                     
-                    # Calculate position age for volatility patterns
-                    entry_time_raw = position.get("entry_time")
-                    if isinstance(entry_time_raw, str):
-                        entry_time = datetime.fromisoformat(entry_time_raw.replace('Z', '+00:00'))
+                    if real_price_data and real_price_data['price_usd'] > 0:
+                        # Use REAL DexScreener price (exact same as the link shows)
+                        new_price_usd = real_price_data['price_usd']
+                        price_source = "REAL DexScreener API"
+                        logger.info(f"📊 REAL PRICE: {position.get('token_symbol')} = ${new_price_usd:.8f} (DexScreener)")
                     else:
-                        entry_time = entry_time_raw
-                        if entry_time.tzinfo is None:
-                            entry_time = entry_time.replace(tzinfo=timezone.utc)
+                        # Step 2: Fallback to REAL PancakeSwap reserves calculation
+                        pair_address = position.get("pair_address")
+                        if not pair_address:
+                            logger.warning(f"No pair address for {position.get('token_symbol')} - skipping")
+                            continue
+                            
+                        pair_info = await get_pair_info(pair_address)
+                        if not pair_info:
+                            logger.warning(f"Cannot get pair info for {position.get('token_symbol')} - skipping")
+                            continue
+                            
+                        new_price_usd = pair_info['initial_price']
+                        price_source = "REAL PancakeSwap Reserves"
+                        logger.info(f"📊 REAL PRICE: {position.get('token_symbol')} = ${new_price_usd:.8f} (PancakeSwap)")
                     
-                    current_time = datetime.now(timezone.utc)
-                    position_age_minutes = (current_time - entry_time).total_seconds() / 60
+                    # Calculate with REAL market data
+                    entry_price = position.get("entry_price", 0)
+                    entry_amount_usd = position.get("entry_amount_usd", 0)
+                    tokens_held = position.get("tokens_held", 0)
                     
-                    # NEW TOKEN LISTING VOLATILITY PATTERNS
-                    if position_age_minutes < 5:
-                        # EARLY PUMP PHASE (0-5 minutes): Massive volatility
-                        pump_chance = random.uniform(0, 1)
-                        if pump_chance > 0.7:  # 30% chance of major pump
-                            volatility = random.uniform(200, 2000)  # 200% to 2000% pump!
-                        elif pump_chance > 0.4:  # 30% chance of medium pump  
-                            volatility = random.uniform(50, 200)   # 50% to 200% pump
-                        else:  # 40% chance of dump/sideways
-                            volatility = random.uniform(-70, 30)   # -70% to +30%
-                    elif position_age_minutes < 15:
-                        # CORRECTION PHASE (5-15 minutes): High volatility correction
-                        volatility = random.uniform(-80, 100)  # Big swings ±80-100%
-                    else:
-                        # STABILIZATION PHASE (15+ minutes): Moderate volatility
-                        volatility = random.uniform(-40, 60)   # ±40-60%
+                    if entry_price <= 0 or entry_amount_usd <= 0 or tokens_held <= 0:
+                        logger.warning(f"Invalid position data for {position.get('token_symbol')} - skipping")
+                        continue
                     
-                    # Apply volatility with some smoothing
-                    price_multiplier = 1 + (volatility / 100)
-                    new_price_usd = entry_price * price_multiplier
+                    # REAL P&L calculation based on actual price movement
+                    price_change_ratio = new_price_usd / entry_price if entry_price > 0 else 1
+                    new_value_usd = entry_amount_usd * price_change_ratio
                     
-                    # Ensure price doesn't go to zero (minimum $0.001)
-                    new_price_usd = max(new_price_usd, 0.001)
-                    
-                    # Calculate current value
-                    new_value_usd = entry_amount_usd * price_multiplier
-                    new_value_usd = max(new_value_usd, 0.001)  # Minimum value
-                    
-                    # Calculate P&L
                     unrealized_pnl_usd = new_value_usd - entry_amount_usd
-                    unrealized_pnl_percent = volatility
+                    unrealized_pnl_percent = ((new_price_usd - entry_price) / entry_price * 100) if entry_price > 0 else 0
                     
-                    # Log exciting movements
-                    if abs(volatility) > 50:
-                        logger.info(f"🚀 {position.get('token_symbol')}: EXPLOSIVE MOVE! {volatility:.1f}% (${entry_amount_usd:.0f} -> ${new_value_usd:.0f})")
-                    else:
-                        logger.info(f"💰 {position.get('token_symbol')}: ${entry_price:.3f} -> ${new_price_usd:.3f} = {volatility:.1f}% (NEW TOKEN VOLATILITY)")
+                    logger.info(f"💹 REAL P&L: {position.get('token_symbol')} - Entry: ${entry_price:.8f} -> Current: ${new_price_usd:.8f} = {unrealized_pnl_percent:.2f}%")
                     
-                    # Update in database with volatile new listing data
+                    # Update with REAL market data
                     await db.positions.update_one(
                         {"id": position["id"]},
                         {
@@ -947,7 +938,7 @@ async def update_position_prices():
                                 "unrealized_pnl_usd": unrealized_pnl_usd,
                                 "unrealized_pnl_percent": unrealized_pnl_percent,
                                 "last_price_update": datetime.now(timezone.utc).isoformat(),
-                                "price_source": "New Token Listing Volatility"
+                                "price_source": price_source
                             }
                         }
                     )
