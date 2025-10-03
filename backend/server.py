@@ -408,9 +408,55 @@ async def start_pair_monitoring():
             logger.error(f"Error in pair monitoring: {e}")
             await asyncio.sleep(10)
 
+async def create_demo_position():
+    """Create a demo trading position for testing"""
+    import random
+    
+    # Get active wallets
+    wallets = await db.wallets.find({"is_active": True, "balance_bnb": {"$gt": 0}}).to_list(10)
+    if not wallets:
+        return
+    
+    # Pick a random wallet
+    wallet = random.choice(wallets)
+    
+    # Create demo position with random data
+    demo_position = Position(
+        wallet_id=wallet["id"],
+        token_address=f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
+        token_symbol=f"DEMO{random.randint(1, 9999)}",
+        pair_address=f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
+        entry_price=random.uniform(0.000001, 0.01),
+        entry_amount_bnb=0.1,
+        entry_amount_usd=random.uniform(25, 100),
+        current_price=random.uniform(0.000001, 0.01),
+        current_value_usd=random.uniform(20, 200),
+        tokens_held=random.uniform(1000, 100000),
+        entry_tx_hash=f"0x{''.join(random.choices('0123456789abcdef', k=64))}"
+    )
+    
+    # Calculate P&L
+    demo_position.unrealized_pnl_usd = demo_position.current_value_usd - demo_position.entry_amount_usd
+    demo_position.unrealized_pnl_percent = (demo_position.unrealized_pnl_usd / demo_position.entry_amount_usd) * 100
+    
+    # Store in database
+    await db.positions.insert_one(demo_position.dict())
+    
+    # Broadcast to connected clients
+    await bot_state.broadcast_to_clients({
+        "type": "demo_position_created",
+        "data": demo_position.dict()
+    })
+    
+    logger.info(f"Demo position created: {demo_position.token_symbol} - {demo_position.unrealized_pnl_percent:.2f}% P&L")
+
 async def simulate_pair_detection():
     """Simulate new pair detection for demo purposes"""
     import random
+    
+    # Occasionally create demo positions if wallets have funds
+    if random.random() < 0.05:  # 5% chance of creating demo trade
+        await create_demo_position()
     
     if random.random() < 0.1:  # 10% chance of detecting a new pair
         fake_pair = NewPairEvent(
