@@ -710,6 +710,9 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
                 entry_time = datetime.strptime(entry_time_raw.split('.')[0], '%Y-%m-%dT%H:%M:%S').replace(tzinfo=timezone.utc)
         else:
             entry_time = entry_time_raw
+            # Ensure timezone awareness
+            if entry_time.tzinfo is None:
+                entry_time = entry_time.replace(tzinfo=timezone.utc)
         
         current_time = datetime.now(timezone.utc)
         position_age_minutes = (current_time - entry_time).total_seconds() / 60
