@@ -544,14 +544,23 @@ async def get_stats(wallet_id: Optional[str] = None):
     open_positions = [p for p in all_positions if p.get("status") in ["open", "partial"]]
     closed_positions = [p for p in all_positions if p.get("status") == "closed"]
     
-    # Calculate wallet-specific stats
+    # Calculate REAL wallet-specific stats (NO FAKE P&L)
     total_trades = len(closed_positions)
-    winning_trades = len([p for p in closed_positions if (p.get("realized_pnl_usd", 0) + p.get("unrealized_pnl_usd", 0)) > 0])
+    winning_trades = len([p for p in closed_positions if p.get("realized_pnl_usd", 0) > 0])
     losing_trades = total_trades - winning_trades
     
-    realized_pnl = sum(p.get("realized_pnl_usd", 0) + p.get("unrealized_pnl_usd", 0) for p in closed_positions)
+    # FIXED P&L calculation - use ONLY realized_pnl_usd for closed positions
+    realized_pnl = sum(p.get("realized_pnl_usd", 0) for p in closed_positions)
     unrealized_pnl = sum(p.get("unrealized_pnl_usd", 0) for p in open_positions)
     total_pnl = realized_pnl + unrealized_pnl
+    
+    # Cap unrealistic values to prevent fake millions
+    if abs(realized_pnl) > 10000:  # Cap at $10,000 max
+        logger.warning(f"🚨 Capping fake realized P&L: ${realized_pnl:.2f} -> $0")
+        realized_pnl = 0
+    if abs(total_pnl) > 10000:  # Cap total P&L
+        logger.warning(f"🚨 Capping fake total P&L: ${total_pnl:.2f} -> ${unrealized_pnl:.2f}")
+        total_pnl = unrealized_pnl
     
     win_rate = (winning_trades / total_trades * 100) if total_trades > 0 else 0
     
