@@ -62,6 +62,18 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           toast.success(`New pair detected: ${message.data.token_symbol}`, {
             description: `Liquidity: $${message.data.liquidity_usd?.toLocaleString()}`
           });
+        } else if (message.type === 'pairs_reset') {
+          // Handle pairs reset from backend
+          setDetectedPairs([]);
+          setTotalPairsDetected(0);
+          setStats(prev => ({
+            ...prev,
+            pairs_detected: 0
+          }));
+          
+          toast.info(`🗑️ Pairs reset: ${message.data.cleared_count} pairs cleared`, {
+            description: 'Starting fresh with new detections only'
+          });
         } else if (message.type === 'positions_updated') {
           // Update positions with new prices and P&L
           const updatedPositionsData = message.data.positions;
