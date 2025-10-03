@@ -52,32 +52,54 @@ const AppContent = () => {
 
   // Initialize WebSocket connection
   useEffect(() => {
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
+    
     const connectWebSocket = () => {
-      const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
-      const websocket = new WebSocket(wsUrl);
+      try {
+        const wsUrl = BACKEND_URL.replace('https://', 'wss://').replace('http://', 'ws://') + '/ws';
+        console.log('Connecting to WebSocket:', wsUrl);
+        const websocket = new WebSocket(wsUrl);
 
-      websocket.onopen = () => {
-        console.log('WebSocket connected');
-        setIsConnected(true);
-        setWs(websocket);
-      };
+        websocket.onopen = () => {
+          console.log('WebSocket connected successfully');
+          setIsConnected(true);
+          setWs(websocket);
+          reconnectAttempts = 0; // Reset attempts on successful connection
+        };
 
-      websocket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        handleWebSocketMessage(message);
-      };
+        websocket.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            handleWebSocketMessage(message);
+          } catch (error) {
+            console.error('Error parsing WebSocket message:', error);
+          }
+        };
 
-      websocket.onclose = () => {
-        console.log('WebSocket disconnected');
+        websocket.onclose = (event) => {
+          console.log('WebSocket disconnected:', event.code, event.reason);
+          setIsConnected(false);
+          setWs(null);
+          
+          // Try to reconnect if under max attempts
+          if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            console.log(`Reconnect attempt ${reconnectAttempts}/${maxReconnectAttempts} in 3 seconds...`);
+            setTimeout(connectWebSocket, 3000);
+          } else {
+            console.error('Max WebSocket reconnection attempts reached');
+          }
+        };
+
+        websocket.onerror = (error) => {
+          console.error('WebSocket error:', error);
+          setIsConnected(false);
+        };
+      } catch (error) {
+        console.error('Failed to create WebSocket connection:', error);
         setIsConnected(false);
-        setWs(null);
-        // Reconnect after 5 seconds
-        setTimeout(connectWebSocket, 5000);
-      };
-
-      websocket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-      };
+      }
     };
 
     connectWebSocket();
