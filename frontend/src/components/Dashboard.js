@@ -31,7 +31,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     fetchDashboardData();
     const interval = setInterval(fetchDashboardData, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchDashboardData]);
 
   // Refresh when botStatus updates (including position changes)
   useEffect(() => {
