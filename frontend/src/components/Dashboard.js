@@ -298,6 +298,23 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId }) => {
 
   return (
     <div className="space-y-8">
+      {/* Wallet Filter Indicator */}
+      {selectedWalletId && (
+        <Card className="glass border-blue-500/30 bg-blue-500/5">
+          <CardContent className="py-3">
+            <div className="flex items-center gap-2 text-blue-400">
+              <Wallet className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                Viewing data for: {availableWallets.find(w => w.id === selectedWalletId)?.name || 'Selected Wallet'}
+              </span>
+              <Badge variant="outline" className="text-xs border-blue-500/30 text-blue-400">
+                Wallet Filtered
+              </Badge>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
         <Card className="glass card-hover border-green-500/20">
