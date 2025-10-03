@@ -514,11 +514,18 @@ async def create_demo_position():
     # Pick a random wallet
     wallet = random.choice(wallets)
     
+    # Create demo position with realistic token names
+    realistic_tokens = [
+        "PEPE", "SHIB", "DOGE", "FLOKI", "SAFEMOON", "BABYDOGE", "ELON", 
+        "KISHU", "HOKK", "AKITA", "SAITAMA", "RYOSHI", "LEASH", "BONE",
+        "CATGIRL", "DOGELON", "HOGE", "PIG", "SAMO", "CHEEMS"
+    ]
+    
     # Create demo position with random data
     demo_position = Position(
         wallet_id=wallet["id"],
         token_address=f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
-        token_symbol=f"DEMO{random.randint(1, 9999)}",
+        token_symbol=random.choice(realistic_tokens),
         pair_address=f"0x{''.join(random.choices('0123456789abcdef', k=40))}",
         entry_price=random.uniform(0.000001, 0.01),
         entry_amount_bnb=0.1,
