@@ -444,6 +444,22 @@ const AppContent = () => {
                 </button>
               </div>
               
+              {/* Mobile Wallet Selector */}
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-xs text-gray-400 min-w-0 flex-shrink-0">Wallet:</span>
+                <select 
+                  value={selectedWalletId || ''}
+                  onChange={(e) => switchWallet(e.target.value)}
+                  className="flex-1 bg-gray-800 border border-gray-600 rounded text-white text-xs py-1.5 px-2"
+                >
+                  {availableWallets.map(wallet => (
+                    <option key={wallet.id} value={wallet.id} className="bg-gray-800">
+                      {wallet.name} ({wallet.balance_bnb?.toFixed(2)} BNB)
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
               <div className="text-right">
                 {!isConnected && (
                   <button 
