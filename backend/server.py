@@ -148,6 +148,7 @@ class BlockchainConfig:
     def __init__(self):
         self.bsc_rpc_http = os.getenv('BSC_RPC_HTTP')
         self.bsc_rpc_ws = os.getenv('BSC_RPC_WS')
+        self.bscscan_api_key = os.getenv('BSCSCAN_API_KEY', '')
         self.pancake_router = os.getenv('PANCAKE_ROUTER')
         self.pancake_factory = os.getenv('PANCAKE_FACTORY')
         self.wbnb_address = os.getenv('WBNB_ADDRESS')
