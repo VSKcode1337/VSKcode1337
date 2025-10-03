@@ -173,18 +173,33 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
   return (
     <div className="space-y-8">
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
+        <Card className="glass card-hover border-green-500/20">
+          <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-sm font-medium text-gray-300">Realized P&L</CardTitle>
+            <TrendingUp className="h-4 w-4 text-green-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl font-bold text-white">
+              {formatPnL(stats.realized_pnl_usd || 0)}
+            </div>
+            <p className="text-xs text-gray-400 mt-1">
+              Closed positions
+            </p>
+          </CardContent>
+        </Card>
+
         <Card className="glass card-hover border-blue-500/20">
           <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-medium text-gray-300">Total P&L</CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-300">Unrealized P&L</CardTitle>
             <TrendingUp className="h-4 w-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
-              {formatPnL(stats.total_pnl_usd)}
+            <div className="text-xl font-bold text-white">
+              {formatPnL(stats.unrealized_pnl_usd || 0)}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {stats.total_trades} total trades
+              Open positions
             </p>
           </CardContent>
         </Card>
