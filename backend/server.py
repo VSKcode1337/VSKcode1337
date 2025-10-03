@@ -1648,17 +1648,26 @@ async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, c
             'chainId': 56  # BSC Mainnet
         })
         
-        # Sign transaction with real private key
+        # Sign transaction with real private key (Web3.py v7+ compatible)
         signed_txn = w3.eth.account.sign_transaction(transaction, account.key)
         
-        # SEND REAL TRANSACTION TO BLOCKCHAIN (fix for Web3.py v6+)
-        if hasattr(signed_txn, 'rawTransaction'):
-            raw_transaction = signed_txn.rawTransaction
-        else:
-            raw_transaction = signed_txn.raw_transaction  # Web3.py v6+ syntax
+        # Handle different Web3.py versions
+        try:
+            if hasattr(signed_txn, 'raw_transaction'):
+                raw_transaction = signed_txn.raw_transaction
+            elif hasattr(signed_txn, 'rawTransaction'):
+                raw_transaction = signed_txn.rawTransaction
+            else:
+                raw_transaction = bytes(signed_txn)
+                
+            tx_hash = w3.eth.send_raw_transaction(raw_transaction)
+            tx_hash_hex = tx_hash.hex()
             
-        tx_hash = w3.eth.send_raw_transaction(raw_transaction)
-        tx_hash_hex = tx_hash.hex()
+        except Exception as signing_error:
+            logger.error(f"Buy transaction signing error: {signing_error}")
+            signed_bytes = signed_txn if isinstance(signed_txn, bytes) else signed_txn.raw_transaction
+            tx_hash = w3.eth.send_raw_transaction(signed_bytes)
+            tx_hash_hex = tx_hash.hex()
         
         logger.info(f"🔥 REAL TRANSACTION SENT: {tx_hash_hex}")
         logger.info(f"🔗 View on BSCScan: https://bscscan.com/tx/{tx_hash_hex}")
