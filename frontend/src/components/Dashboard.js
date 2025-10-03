@@ -491,16 +491,20 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Total Volume</span>
-                  <span className="text-white font-semibold">{formatCurrency(stats.total_volume_usd)}</span>
+                  <span className="text-gray-400">Realized P&L</span>
+                  <span className="text-white font-semibold">{formatPnL(stats.realized_pnl_usd || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-400">Average Hold Time</span>
-                  <span className="text-white font-semibold">{(stats.avg_hold_time_minutes || 0).toFixed(1)}m</span>
+                  <span className="text-gray-400">Unrealized P&L</span>
+                  <span className="text-white font-semibold">{formatPnL(stats.unrealized_pnl_usd || 0)}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Win Rate</span>
                   <span className="text-white font-semibold">{(stats.win_rate_percent || 0).toFixed(1)}%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-400">Pairs Detected</span>
+                  <span className="text-white font-semibold">{stats.pairs_detected || 0} total</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-400">Detection Rate</span>
