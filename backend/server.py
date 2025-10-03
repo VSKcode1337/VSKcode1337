@@ -718,6 +718,82 @@ async def update_position_prices():
             logger.error(f"Error updating position prices: {e}")
             await asyncio.sleep(10)
 
+async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
+    """Execute a demo trade for a real detected token"""
+    try:
+        # Get trading configuration
+        config = await db.trading_config.find_one({"is_active": True})
+        if not config:
+            logger.warning("No trading config found for demo execution")
+            return
+            
+        # Get active demo wallets with balance
+        wallets = await db.wallets.find({"is_active": True, "balance_bnb": {"$gt": 0.1}}).to_list(10)
+        if not wallets:
+            logger.warning("No demo wallets with sufficient balance for trading")
+            return
+            
+        # Select a random wallet for demo trading
+        import random
+        wallet = random.choice(wallets)
+        
+        # Calculate trade size based on config
+        trade_amount_usd = config.get('trade_amount_usd', 50)
+        bnb_price = 320.0  # Approximate BNB price for demo
+        trade_amount_bnb = trade_amount_usd / bnb_price
+        
+        # Check if wallet has enough balance
+        if wallet['balance_bnb'] < trade_amount_bnb:
+            logger.warning(f"Wallet {wallet.get('name')} insufficient balance for ${trade_amount_usd} trade")
+            return
+            
+        # Create demo position with real token data
+        demo_position = Position(
+            wallet_id=wallet['id'],
+            token_address=detected_pair.token_address,
+            token_symbol=detected_pair.token_symbol,
+            token_name=detected_pair.token_name,
+            pair_address=detected_pair.pair_address,
+            entry_amount_bnb=trade_amount_bnb,
+            entry_amount_usd=trade_amount_usd,
+            entry_price=detected_pair.initial_price,
+            current_price=detected_pair.initial_price,
+            current_value_usd=trade_amount_usd,
+            token_amount=trade_amount_usd / detected_pair.initial_price if detected_pair.initial_price > 0 else 1000,
+            entry_time=datetime.now(timezone.utc),
+            status="open",
+            unrealized_pnl_usd=0.0,
+            unrealized_pnl_percent=0.0,
+            entry_tx_hash=f"demo_tx_{detected_pair.id[:8]}"
+        )
+        
+        # Update wallet balance (deduct used funds)
+        new_wallet_balance = wallet['balance_bnb'] - trade_amount_bnb
+        await db.wallets.update_one(
+            {"id": wallet['id']},
+            {"$set": {"balance_bnb": max(0, new_wallet_balance)}}
+        )
+        
+        # Store position in database
+        await db.positions.insert_one(demo_position.dict())
+        
+        # Update detected pair to mark as bought
+        await db.detected_pairs.update_one(
+            {"id": detected_pair.id},
+            {"$set": {"action_taken": "bought"}}
+        )
+        
+        # Broadcast position creation
+        await bot_state.broadcast_to_clients({
+            "type": "demo_position_created",
+            "data": demo_position.dict()
+        })
+        
+        logger.info(f"💰 DEMO TRADE EXECUTED: {detected_pair.token_symbol} - ${trade_amount_usd} using wallet {wallet.get('name')}")
+        
+    except Exception as e:
+        logger.error(f"Error executing demo trade for {detected_pair.token_symbol}: {e}")
+
 async def create_demo_position():
     """Create a demo trading position for testing"""
     import random
