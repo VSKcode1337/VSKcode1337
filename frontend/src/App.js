@@ -158,10 +158,11 @@ const AppContent = () => {
         break;
       case 'new_pair_detected':
         console.log('New pair detected:', message.data);
-        // Update detected pairs count
+        // Update detected pairs count and force dashboard refresh
         setBotStatus(prev => ({ 
           ...prev, 
-          detected_pairs_today: prev.detected_pairs_today + 1 
+          detected_pairs_today: prev.detected_pairs_today + 1,
+          last_updated: Date.now()
         }));
         break;
       case 'position_closed':
