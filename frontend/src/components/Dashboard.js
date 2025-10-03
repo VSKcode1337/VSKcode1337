@@ -25,6 +25,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     pairs_traded: 0
   });
   const [loading, setLoading] = useState(true);
+  const [livePairsCount, setLivePairsCount] = useState(0);
 
   useEffect(() => {
     fetchDashboardData();
