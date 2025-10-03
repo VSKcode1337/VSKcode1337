@@ -843,8 +843,14 @@ async def scan_real_pairs():
 async def scan_pairs_via_http():
     """Scan for new pairs using HTTP polling"""
     try:
-        # Get the latest block
+        # Get the latest block for real-time monitoring
         latest_block = blockchain_config.w3.eth.block_number
+        
+        # Store the current block as our starting point for NEW pairs only
+        if not hasattr(blockchain_config, 'monitoring_from_block'):
+            blockchain_config.monitoring_from_block = latest_block
+            logger.info(f"🔍 Starting NEW pair detection from block {latest_block}")
+            return  # Skip first run to avoid detecting old pairs
         
         # Get factory contract
         factory_contract = blockchain_config.w3.eth.contract(
@@ -852,14 +858,26 @@ async def scan_pairs_via_http():
             abi=blockchain_config.factory_abi
         )
         
-        # Get PairCreated events from recent blocks (last 20 blocks)
-        from_block = max(0, latest_block - 20)
+        # Only check for NEW events since last check (not historical events)
+        from_block = blockchain_config.monitoring_from_block + 1
+        to_block = latest_block
+        
+        if from_block > to_block:
+            return  # No new blocks to check
+        
+        logger.info(f"🔎 Scanning blocks {from_block} to {to_block} for NEW pairs only")
         
         try:
             events = factory_contract.events.PairCreated.get_logs(
                 from_block=from_block,
-                to_block=latest_block
+                to_block=to_block
             )
+            
+            # Update monitoring position
+            blockchain_config.monitoring_from_block = to_block
+            
+            if events:
+                logger.info(f"🚨 Found {len(events)} NEW PairCreated events!")
             
             for event in events:
                 # Process each pair creation event
