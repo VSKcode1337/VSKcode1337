@@ -15,7 +15,7 @@ from decimal import Decimal
 
 # Web3 and blockchain imports
 from web3 import Web3, AsyncWeb3
-from web3.middleware import geth_poa_middleware
+from web3.middleware import ExtraDataToPOAMiddleware
 from eth_account import Account
 import websockets
 import aiohttp
