@@ -608,6 +608,77 @@ async def get_stats(wallet_id: Optional[str] = None):
             "wallet_filtered": False
         }
 
+@api_router.get("/wallets/{wallet_id}/scan-all-tokens")
+async def scan_all_token_balances(wallet_id: str):
+    """Scan wallet address for ALL token balances"""
+    try:
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if not wallet:
+            raise HTTPException(status_code=404, detail="Wallet not found")
+        
+        address = wallet.get('address')
+        if not address:
+            raise HTTPException(status_code=400, detail="No wallet address found")
+        
+        # Get all unique token addresses from recent positions
+        recent_positions = await db.positions.find({
+            "wallet_id": wallet_id,
+            "token_address": {"$exists": True}
+        }).to_list(100)
+        
+        unique_tokens = list(set(pos.get("token_address") for pos in recent_positions if pos.get("token_address")))
+        
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config:
+            return {"error": "No RPC configuration"}
+        
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        
+        token_balances = []
+        for token_address in unique_tokens[:10]:  # Check first 10 tokens
+            try:
+                token_contract = w3.eth.contract(
+                    address=Web3.to_checksum_address(token_address),
+                    abi=ERC20_ABI
+                )
+                
+                balance_wei = token_contract.functions.balanceOf(address).call()
+                decimals = token_contract.functions.decimals().call()
+                symbol = token_contract.functions.symbol().call()
+                balance_tokens = balance_wei / (10 ** decimals)
+                
+                if balance_tokens > 0:  # Only include tokens with balance
+                    # Get current price from DexScreener
+                    price_data = await get_real_time_token_price(token_address)
+                    current_price = price_data['price_usd'] if price_data else 0
+                    current_value_usd = balance_tokens * current_price
+                    
+                    token_balances.append({
+                        "token_symbol": symbol,
+                        "token_address": token_address,
+                        "balance_tokens": balance_tokens,
+                        "current_price_usd": current_price,
+                        "current_value_usd": current_value_usd,
+                        "dexscreener_url": f"https://dexscreener.com/bsc/{token_address}",
+                        "pancakeswap_url": f"https://pancakeswap.finance/swap?outputCurrency={token_address}"
+                    })
+                
+            except Exception as e:
+                logger.error(f"Error checking token {token_address}: {e}")
+                continue
+        
+        return {
+            "wallet_address": address,
+            "tokens_found": len(token_balances),
+            "token_balances": token_balances,
+            "total_value_usd": sum(t["current_value_usd"] for t in token_balances)
+        }
+        
+    except Exception as e:
+        logger.error(f"Error scanning tokens for wallet {wallet_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @api_router.post("/wallets/{wallet_id}/add-private-key")
 async def add_private_key_to_wallet(wallet_id: str, private_key_data: dict):
     """Add real private key to wallet for blockchain trading"""
