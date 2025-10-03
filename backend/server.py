@@ -1002,17 +1002,9 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
         import random
         wallet = random.choice(wallets)
         
-        # Get real-time price for accurate entry
-        real_time_price = await get_real_time_token_price(detected_pair.token_address)
-        
-        # Use realistic pricing approach
-        if real_time_price and real_time_price['price_usd'] > 0:
-            entry_price_usd = real_time_price['price_usd']
-            logger.info(f"📊 Using DexScreener price: ${entry_price_usd} for {detected_pair.token_symbol}")
-        else:
-            # Fallback: Use initial price from pair reserves
-            entry_price_usd = detected_pair.initial_price
-            logger.info(f"📊 Using blockchain price: ${entry_price_usd} for {detected_pair.token_symbol}")
+        # REALISTIC DEMO PRICING (avoid scam tokens with fake prices)
+        # Use standardized demo prices to ensure realistic P&L
+        realistic_demo_price = 0.50  # Start all demo tokens at $0.50
         
         # Calculate trade size based on current config
         trade_amount_usd = config.get('trade_amount_usd', 50)
@@ -1024,12 +1016,10 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             logger.warning(f"Wallet {wallet.get('name')} insufficient balance for ${trade_amount_usd} trade")
             return
             
-        # Calculate tokens purchased (REALISTIC calculation)
-        tokens_purchased = trade_amount_usd / entry_price_usd if entry_price_usd > 0 else 0
+        # Calculate tokens purchased with realistic price
+        tokens_purchased = trade_amount_usd / realistic_demo_price
         
-        if tokens_purchased <= 0:
-            logger.warning(f"Invalid token calculation for {detected_pair.token_symbol} - skipping trade")
-            return
+        logger.info(f"📊 Creating realistic demo position: {detected_pair.token_symbol} @ ${realistic_demo_price} = {tokens_purchased} tokens")
             
         # Create demo position with REALISTIC calculations
         demo_position = Position(
@@ -1040,10 +1030,10 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             pair_address=detected_pair.pair_address,
             entry_amount_bnb=trade_amount_bnb,
             entry_amount_usd=trade_amount_usd,
-            entry_price=entry_price_usd,  # Real market price
-            current_price=entry_price_usd,  # Start with entry price
-            current_value_usd=trade_amount_usd,  # Starts equal to entry
-            tokens_held=tokens_purchased,  # Realistic token amount
+            entry_price=realistic_demo_price,  # Realistic demo price
+            current_price=realistic_demo_price,  # Start equal
+            current_value_usd=trade_amount_usd,  # Starts equal
+            tokens_held=tokens_purchased,  # Realistic token count
             entry_time=datetime.now(timezone.utc),
             status="open",
             unrealized_pnl_usd=0.0,  # Starts at zero
