@@ -203,6 +203,39 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     }
   };
 
+  const resetDetectedPairs = async () => {
+    // Confirmation dialog
+    const confirmed = window.confirm(
+      'Are you sure you want to clear all detected pairs?\n\nThis will permanently delete all pair history and cannot be undone.'
+    );
+    
+    if (!confirmed) return;
+
+    try {
+      const response = await axios.delete(`${API}/pairs/detected`);
+      
+      // Clear the local state
+      setDetectedPairs([]);
+      setTotalPairsDetected(0);
+      
+      // Update stats to reflect reset
+      setStats(prev => ({
+        ...prev,
+        pairs_detected: 0
+      }));
+      
+      toast.success(`🗑️ Successfully cleared ${response.data.cleared_count} pairs`, {
+        description: 'Pair detection history has been reset'
+      });
+      
+      // Refresh dashboard data
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Failed to reset pairs:', error);
+      toast.error('Failed to reset detected pairs');
+    }
+  };
+
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
