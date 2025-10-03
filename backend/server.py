@@ -857,8 +857,8 @@ async def scan_pairs_via_http():
         
         try:
             events = factory_contract.events.PairCreated.get_logs(
-                fromBlock=from_block,
-                toBlock=latest_block
+                from_block=from_block,
+                to_block=latest_block
             )
             
             for event in events:
