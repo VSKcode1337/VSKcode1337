@@ -143,6 +143,19 @@ function App() {
             </div>
           </header>
 
+          {/* Navigation Menu */}
+          <nav className="mb-8">
+            <div className="flex items-center justify-center bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-2">
+              <div className="flex space-x-1">
+                <NavButton href="/" label="📊 Dashboard" />
+                <NavButton href="/sniper" label="⚡ Sniper Control" />
+                <NavButton href="/positions" label="💼 Positions" />
+                <NavButton href="/config" label="⚙️ Configuration" />
+                <NavButton href="/wallets" label="👛 Wallets" />
+              </div>
+            </div>
+          </nav>
+
           <Routes>
             <Route path="/" element={
               <Dashboard 
