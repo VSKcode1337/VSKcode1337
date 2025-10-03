@@ -50,7 +50,6 @@ const AppContent = () => {
   });
   const [ws, setWs] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
-  const [currentTime, setCurrentTime] = useState(new Date());
 
   // Initialize WebSocket connection
   useEffect(() => {
