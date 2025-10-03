@@ -121,6 +121,11 @@ class NewPairEvent(BaseModel):
     risk_passed: bool = False
     risk_reasons: List[str] = []
     action_taken: str = "none"  # none, probe, bought, rejected
+    # Useful links for viewing token info
+    dexscreener_url: str = ""
+    bscscan_token_url: str = ""
+    bscscan_pair_url: str = ""
+    pancakeswap_url: str = ""
 
 class TradingStats(BaseModel):
     total_trades: int = 0
