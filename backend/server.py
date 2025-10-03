@@ -1245,6 +1245,30 @@ async def update_position_prices():
             logger.error(f"Error updating REAL prices: {e}")
             await asyncio.sleep(1)
 
+async def calculate_tokens_from_receipt(w3, receipt, token_address, wallet_address):
+    """Calculate actual tokens received from transaction receipt"""
+    try:
+        # Setup token contract
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
+        )
+        
+        # Get actual token balance from blockchain
+        token_balance_wei = token_contract.functions.balanceOf(wallet_address).call()
+        
+        # Get token decimals
+        decimals = token_contract.functions.decimals().call()
+        
+        # Convert to human readable amount
+        tokens_received = token_balance_wei / (10 ** decimals)
+        
+        return tokens_received
+        
+    except Exception as e:
+        logger.error(f"Error calculating tokens from receipt: {e}")
+        return 0
+
 async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
     """Execute REAL blockchain transaction on PancakeSwap"""
     try:
