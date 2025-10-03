@@ -164,15 +164,27 @@ const AppContent = () => {
           </div>
         </header>
 
-        {/* Navigation Menu */}
+        {/* Navigation Menu - Mobile Responsive */}
         <nav className="mb-8">
-          <div className="flex items-center justify-center bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-2">
-            <div className="flex space-x-1">
-              <NavButton href="/" label="📊 Dashboard" />
-              <NavButton href="/sniper" label="⚡ Sniper Control" />
-              <NavButton href="/positions" label="💼 Positions" />
-              <NavButton href="/config" label="⚙️ Configuration" />
-              <NavButton href="/wallets" label="👛 Wallets" />
+          <div className="bg-gray-800/50 backdrop-blur-xl border border-gray-700 rounded-2xl p-2">
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center justify-center">
+              <div className="flex space-x-1">
+                <NavButton href="/" label="📊 Dashboard" />
+                <NavButton href="/sniper" label="⚡ Sniper Control" />
+                <NavButton href="/positions" label="💼 Positions" />
+                <NavButton href="/config" label="⚙️ Configuration" />
+                <NavButton href="/wallets" label="👛 Wallets" />
+              </div>
+            </div>
+            
+            {/* Mobile Navigation */}
+            <div className="flex md:hidden flex-wrap gap-2 justify-center">
+              <NavButton href="/" label="📊" mobileLabel="Dashboard" />
+              <NavButton href="/sniper" label="⚡" mobileLabel="Sniper" />
+              <NavButton href="/positions" label="💼" mobileLabel="Positions" />
+              <NavButton href="/config" label="⚙️" mobileLabel="Config" />
+              <NavButton href="/wallets" label="👛" mobileLabel="Wallets" />
             </div>
           </div>
         </nav>
