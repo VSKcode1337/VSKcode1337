@@ -922,67 +922,96 @@ async def add_demo_funds(wallet_id: str):
 
 @api_router.post("/positions/{position_id}/close")
 async def close_position(position_id: str):
-    position = await db.positions.find_one({"id": position_id})
-    if not position:
-        raise HTTPException(status_code=404, detail="Position not found")
-    
-    # For demo positions, simulate closing
-    if position.get("status") != "closed":
-        # Calculate final value to return to wallet
-        current_value_usd = position.get("current_value_usd", 0)
-        entry_amount_usd = position.get("entry_amount_usd", 0)
-        realized_pnl_usd = position.get("unrealized_pnl_usd", 0)
+    """Close position with IMMEDIATE REAL PancakeSwap sell execution"""
+    try:
+        position = await db.positions.find_one({"id": position_id})
+        if not position:
+            raise HTTPException(status_code=404, detail="Position not found")
         
-        # Convert USD back to BNB (assuming 1 BNB = ~$600 for demo)
-        bnb_price = 600  # You can update this with real price later
-        bnb_to_return = current_value_usd / bnb_price
+        if position.get("status") == "closed":
+            raise HTTPException(status_code=400, detail="Position is already closed")
         
-        # Update wallet balance
+        # Get wallet with private key for REAL sell execution
         wallet_id = position.get("wallet_id")
         wallet = await db.wallets.find_one({"id": wallet_id})
-        if wallet:
-            new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
-            await db.wallets.update_one(
-                {"id": wallet_id},
-                {"$set": {"balance_bnb": new_balance}}
-            )
-            logger.info(f"Wallet {wallet.get('name')} updated: +{bnb_to_return:.4f} BNB (new balance: {new_balance:.4f} BNB)")
+        if not wallet or not wallet.get("private_key"):
+            raise HTTPException(status_code=400, detail="No wallet private key - cannot execute real sell")
         
-        # Update position status to closed
-        await db.positions.update_one(
-            {"id": position_id},
-            {
-                "$set": {
-                    "status": "closed",
-                    "exit_time": datetime.now(timezone.utc).isoformat(),
-                    "realized_pnl_usd": realized_pnl_usd,
-                    "tokens_sold": position.get("tokens_held", 0)
-                }
-            }
+        # Get RPC config
+        rpc_config = await db.rpc_config.find_one({"is_active": True})
+        if not rpc_config:
+            raise HTTPException(status_code=500, detail="No RPC configuration")
+        
+        w3 = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+        from eth_account import Account
+        account = Account.from_key(wallet['private_key'])
+        token_address = position.get("token_address")
+        
+        # Check current token balance on blockchain
+        token_contract = w3.eth.contract(
+            address=Web3.to_checksum_address(token_address),
+            abi=ERC20_ABI
         )
         
-        # Broadcast position close to connected clients
-        await bot_state.broadcast_to_clients({
-            "type": "position_closed",
-            "data": {
+        token_balance_wei = token_contract.functions.balanceOf(account.address).call()
+        decimals = token_contract.functions.decimals().call()
+        actual_tokens = token_balance_wei / (10 ** decimals)
+        
+        if actual_tokens <= 0:
+            return {"message": "No tokens to sell - already sold or transferred", "token_balance": 0}
+        
+        logger.info(f"🔥 IMMEDIATE CLOSE: Selling {actual_tokens:.2f} {position.get('token_symbol')} tokens NOW!")
+        
+        # Execute IMMEDIATE REAL sell on PancakeSwap
+        config = await db.trading_config.find_one({"is_active": True})
+        sell_tx_hash = await execute_real_pancakeswap_sell(
+            w3, account, token_address, actual_tokens, config or {}
+        )
+        
+        if sell_tx_hash:
+            # Update position as REALLY closed
+            await db.positions.update_one(
+                {"id": position_id},
+                {
+                    "$set": {
+                        "exit_tx_hashes": [sell_tx_hash],
+                        "exit_time": datetime.now(timezone.utc),
+                        "status": "closed",
+                        "tokens_sold": actual_tokens,
+                        "notes": f"REAL CLOSE: Tokens sold to BNB - TX: {sell_tx_hash}"
+                    }
+                }
+            )
+            
+            # Broadcast position closure
+            await bot_state.broadcast_to_clients({
+                "type": "position_closed",
+                "data": {
+                    "position_id": position_id,
+                    "token_symbol": position.get("token_symbol"),
+                    "tokens_sold": actual_tokens,
+                    "sell_tx_hash": sell_tx_hash
+                }
+            })
+            
+            logger.info(f"💰 POSITION REALLY CLOSED: {sell_tx_hash}")
+            logger.info(f"🔗 BSCScan: https://bscscan.com/tx/{sell_tx_hash}")
+            
+            return {
+                "message": f"Position closed - {actual_tokens:.2f} tokens sold on PancakeSwap",
                 "position_id": position_id,
-                "token_symbol": position.get("token_symbol"),
-                "realized_pnl": realized_pnl_usd,
-                "wallet_id": wallet_id,
-                "bnb_returned": bnb_to_return
+                "tokens_sold": actual_tokens,
+                "sell_tx_hash": sell_tx_hash,
+                "bscscan_url": f"https://bscscan.com/tx/{sell_tx_hash}"
             }
-        })
+        else:
+            raise HTTPException(status_code=500, detail="REAL sell transaction failed")
         
-        logger.info(f"Position closed manually: {position.get('token_symbol')} - PnL: ${realized_pnl_usd:.2f}")
-        
-        return {
-            "message": "Position closed successfully",
-            "position_id": position_id,
-            "realized_pnl": realized_pnl_usd,
-            "bnb_returned": bnb_to_return
-        }
-    else:
-        raise HTTPException(status_code=400, detail="Position is already closed")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error closing position {position_id}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @api_router.post("/positions/close-all")
 async def close_all_positions():
