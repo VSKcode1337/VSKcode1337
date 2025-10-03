@@ -786,9 +786,9 @@ async def get_token_info(token_address: str):
             abi=blockchain_config.erc20_abi
         )
         
-        # Fetch token data
-        symbol = token_contract.functions.name().call()[:10]  # Limit length
-        name = token_contract.functions.symbol().call()[:20]
+        # Fetch token data (FIXED: symbol and name were swapped)
+        symbol = token_contract.functions.symbol().call()[:10]  # Get symbol 
+        name = token_contract.functions.name().call()[:50]      # Get full name
         decimals = token_contract.functions.decimals().call()
         
         return {
