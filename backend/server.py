@@ -510,6 +510,76 @@ async def start_pair_monitoring():
             logger.error(f"Error in pair monitoring: {e}")
             await asyncio.sleep(10)
 
+async def update_position_prices():
+    """Update position prices and P&L in real-time"""
+    import random
+    logger.info("Starting position price updates...")
+    
+    while bot_state.is_running:
+        try:
+            # Get all open positions
+            open_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(1000)
+            
+            if not open_positions:
+                await asyncio.sleep(3)
+                continue
+            
+            updated_positions = []
+            
+            for position in open_positions:
+                # Simulate price movement (-5% to +5% change)
+                price_change_percent = random.uniform(-5, 5)
+                current_price = position.get("current_price", position.get("entry_price", 0))
+                new_price = current_price * (1 + price_change_percent / 100)
+                
+                # Calculate new values
+                tokens_held = position.get("tokens_held", 0)
+                new_value_usd = new_price * tokens_held
+                entry_amount_usd = position.get("entry_amount_usd", 0)
+                
+                # Calculate P&L
+                unrealized_pnl_usd = new_value_usd - entry_amount_usd
+                unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
+                
+                # Update in database
+                await db.positions.update_one(
+                    {"id": position["id"]},
+                    {
+                        "$set": {
+                            "current_price": new_price,
+                            "current_value_usd": new_value_usd,
+                            "unrealized_pnl_usd": unrealized_pnl_usd,
+                            "unrealized_pnl_percent": unrealized_pnl_percent
+                        }
+                    }
+                )
+                
+                # Add to broadcast list
+                updated_positions.append({
+                    "id": position["id"],
+                    "token_symbol": position.get("token_symbol", ""),
+                    "current_price": new_price,
+                    "current_value_usd": new_value_usd,
+                    "unrealized_pnl_usd": unrealized_pnl_usd,
+                    "unrealized_pnl_percent": unrealized_pnl_percent
+                })
+            
+            # Broadcast updates to connected clients
+            if updated_positions:
+                await bot_state.broadcast_to_clients({
+                    "type": "positions_updated",
+                    "data": {
+                        "positions": updated_positions,
+                        "count": len(updated_positions)
+                    }
+                })
+            
+            await asyncio.sleep(3)  # Update every 3 seconds
+            
+        except Exception as e:
+            logger.error(f"Error updating position prices: {e}")
+            await asyncio.sleep(5)
+
 async def create_demo_position():
     """Create a demo trading position for testing"""
     import random
