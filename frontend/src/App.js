@@ -491,6 +491,7 @@ const AppContent = () => {
               isConnected={isConnected}
               ws={ws}
               selectedWalletId={selectedWalletId}
+              availableWallets={availableWallets}
               refreshTrigger={Date.now()} // Force refresh when props change
             />
           } />
