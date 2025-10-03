@@ -46,6 +46,8 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
         const message = JSON.parse(event.data);
         if (message.type === 'new_pair_detected') {
           setDetectedPairs(prev => [message.data, ...prev.slice(0, 19)]);
+          // Update live pairs count immediately
+          setLivePairsCount(prev => prev + 1);
           toast.success(`New pair detected: ${message.data.token_symbol}`, {
             description: `Liquidity: $${message.data.liquidity_usd?.toLocaleString()}`
           });
@@ -56,6 +58,16 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       return () => ws.removeEventListener('message', handleMessage);
     }
   }, [ws]);
+
+  // Listen for refresh events
+  useEffect(() => {
+    const handleRefresh = () => {
+      fetchDashboardData();
+    };
+    
+    window.addEventListener('refreshDashboard', handleRefresh);
+    return () => window.removeEventListener('refreshDashboard', handleRefresh);
+  }, []);
 
   const fetchDashboardData = async () => {
     try {
