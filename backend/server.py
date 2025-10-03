@@ -741,6 +741,9 @@ async def update_position_prices():
                         }
                     )
                     
+                    # Check for auto-close conditions
+                    await check_auto_close_conditions(position, new_price, unrealized_pnl_percent)
+                    
                     # Add to broadcast list
                     updated_positions.append({
                         "id": position["id"],
