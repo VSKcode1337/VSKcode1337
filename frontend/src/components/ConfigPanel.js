@@ -314,7 +314,7 @@ const ConfigPanel = () => {
                         const reader = new FileReader();
                         reader.onload = (event) => {
                           try {
-                            const importedConfig = JSON.parse(event.target?.result as string);
+                            const importedConfig = JSON.parse(event.target.result);
                             setConfig(importedConfig);
                             toast.success('Configuration imported successfully');
                           } catch (error) {
