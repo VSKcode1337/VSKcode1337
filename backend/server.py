@@ -1334,10 +1334,10 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
         
         logger.info(f"💰 Real wallet balance: {real_balance_bnb:.6f} BNB")
         
-        # Calculate trade amount
-        trade_amount_usd = config.get('trade_amount_usd', 50)
-        bnb_price_usd = 600  # Approximate BNB price
-        trade_amount_bnb = trade_amount_usd / bnb_price_usd
+        # Calculate trade amount with REAL BNB price
+        trade_amount_usd = config.get('trade_amount_usd', 5)
+        bnb_price_usd = 1170  # Real BNB price
+        trade_amount_bnb = trade_amount_usd / bnb_price_usd  # Should be ~0.004 BNB for $5
         
         # Check sufficient balance (including gas fees)
         min_balance_needed = trade_amount_bnb + 0.001  # Add gas buffer
