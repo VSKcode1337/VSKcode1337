@@ -537,8 +537,7 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId, availableWall
                           <div className="text-center min-w-0 flex-shrink-0">
                             <div className="text-gray-500 text-xs mb-1">Time</div>
                             <div className="text-white font-semibold text-xs md:text-sm whitespace-nowrap">
-                              {new Date(pair.detected_at).toLocaleTimeString('en-GB', { 
-                                timeZone: 'Europe/London',
+                              {new Date(new Date(pair.detected_at).getTime() + (60 * 60 * 1000)).toLocaleTimeString('en-GB', { 
                                 hour12: false,
                                 hour: '2-digit',
                                 minute: '2-digit',
