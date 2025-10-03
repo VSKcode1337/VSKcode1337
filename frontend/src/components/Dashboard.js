@@ -6,7 +6,6 @@ import { Separator } from './ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Progress } from './ui/progress';
 import { Zap, TrendingUp, Target, Wallet, Activity, AlertTriangle, Clock, DollarSign } from 'lucide-react';
-import { ProfessionalToggle } from './ui/professional-toggle';
 import axios from 'axios';
 import { toast } from 'sonner';
 
