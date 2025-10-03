@@ -1955,6 +1955,15 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
         # Setup deadline
         deadline = int(time.time()) + 600
         
+        # Use HIGHER gas price for faster execution (beat MEV bots)
+        current_gas_price = w3.eth.gas_price
+        aggressive_gas_price = int(current_gas_price * 1.5)  # 50% higher than market
+        max_gas_price = w3.to_wei(15, 'gwei')  # Cap at 15 Gwei
+        
+        gas_price = min(aggressive_gas_price, max_gas_price)
+        
+        logger.info(f"⚡ Using AGGRESSIVE gas: {w3.from_wei(gas_price, 'gwei'):.1f} Gwei (market: {w3.from_wei(current_gas_price, 'gwei'):.1f})")
+        
         # Build sell transaction
         transaction = router_contract.functions.swapExactTokensForETH(
             token_amount_wei,
@@ -1964,8 +1973,8 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
             deadline
         ).build_transaction({
             'from': account.address,
-            'gas': config.get('gas_limit', 300000),
-            'gasPrice': w3.to_wei(config.get('gas_price_gwei', 5), 'gwei'),
+            'gas': 400000,  # Higher gas limit for complex swaps
+            'gasPrice': gas_price,  # Aggressive gas price
             'nonce': w3.eth.get_transaction_count(account.address),
             'chainId': 56
         })
