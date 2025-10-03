@@ -233,12 +233,71 @@ body {
 /* Responsive design helpers */
 @media (max-width: 768px) {
   .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
   
   .text-responsive {
     font-size: 0.875rem;
+  }
+  
+  /* Mobile-specific adjustments */
+  body {
+    font-size: 14px;
+  }
+  
+  /* Make cards stack better on mobile */
+  .grid-cols-1 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Adjust padding for mobile */
+  .px-4 {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+  
+  /* Make buttons more touch-friendly */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Improve text readability on mobile */
+  .text-xs {
+    font-size: 0.7rem;
+  }
+  
+  .text-sm {
+    font-size: 0.8rem;
+  }
+  
+  /* Make status indicators more visible on mobile */
+  .status-dot {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Extra small screens */
+@media (max-width: 480px) {
+  .container {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  /* Stack navigation buttons vertically on very small screens */
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  
+  /* Reduce spacing on small screens */
+  .space-x-1 > * + * {
+    margin-left: 0.125rem;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem;
   }
 }
 
