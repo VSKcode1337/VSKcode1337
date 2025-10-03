@@ -939,7 +939,7 @@ async def auto_close_position(position_id: str, reason: str, current_price: floa
 
 async def update_position_prices():
     """Update position prices using REAL PancakeSwap data - MILLISECOND UPDATES"""
-    logger.info("🚀 Starting REAL PANCAKESWAP price updates (NO SIMULATION!)")
+    logger.info("🚀 Starting REAL MARKET price updates (REAL PANCAKESWAP DATA!)")
     
     while bot_state.is_running:
         try:
