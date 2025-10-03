@@ -444,10 +444,10 @@ const AppContent = () => {
               refreshTrigger={Date.now()} // Force refresh when props change
             />
           } />
-          <Route path="/sniper" element={<SniperControl botStatus={botStatus} />} />
           <Route path="/positions" element={<PositionsView ws={ws} />} />
-          <Route path="/config" element={<ConfigPanel />} />
           <Route path="/wallets" element={<WalletManager ws={ws} />} />
+          <Route path="/config" element={<ConfigPanel />} />
+          <Route path="/sniper" element={<SniperControl botStatus={botStatus} />} />
         </Routes>
       </div>
       
