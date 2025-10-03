@@ -271,13 +271,24 @@ async def update_trading_config(config: TradingConfig):
     bot_state.trading_config = config
     return config
 
-@api_router.get("/wallets", response_model=List[WalletConfig])
+class WalletResponse(BaseModel):
+    id: str
+    name: str
+    address: str
+    is_active: bool = True
+    balance_bnb: float = 0.0
+    created_at: datetime
+
+@api_router.get("/wallets", response_model=List[WalletResponse])
 async def get_wallets():
     wallets = await db.wallets.find({"is_active": True}).to_list(100)
-    # Don't return private keys in API response
+    # Return wallets without private keys for security
+    wallet_responses = []
     for wallet in wallets:
-        wallet.pop('private_key', None)
-    return [WalletConfig(**wallet) for wallet in wallets]
+        wallet.pop('_id', None)  # Remove MongoDB ObjectId
+        wallet.pop('private_key', None)  # Remove private key for security
+        wallet_responses.append(WalletResponse(**wallet))
+    return wallet_responses
 
 @api_router.post("/wallets", response_model=WalletConfig)
 async def add_wallet(wallet_input: WalletInput):
