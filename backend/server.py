@@ -367,8 +367,40 @@ async def close_position(position_id: str):
     if not position:
         raise HTTPException(status_code=404, detail="Position not found")
     
-    # TODO: Implement position closing logic
-    return {"message": f"Position {position_id} close requested"}
+    # For demo positions, simulate closing
+    if position.get("status") != "closed":
+        # Update position status to closed
+        await db.positions.update_one(
+            {"id": position_id},
+            {
+                "$set": {
+                    "status": "closed",
+                    "exit_time": datetime.now(timezone.utc).isoformat(),
+                    "realized_pnl_usd": position.get("unrealized_pnl_usd", 0),
+                    "tokens_sold": position.get("tokens_held", 0)
+                }
+            }
+        )
+        
+        # Broadcast position close to connected clients
+        await bot_state.broadcast_to_clients({
+            "type": "position_closed",
+            "data": {
+                "position_id": position_id,
+                "token_symbol": position.get("token_symbol"),
+                "realized_pnl": position.get("unrealized_pnl_usd", 0)
+            }
+        })
+        
+        logger.info(f"Position closed manually: {position.get('token_symbol')} - PnL: ${position.get('unrealized_pnl_usd', 0):.2f}")
+        
+        return {
+            "message": "Position closed successfully",
+            "position_id": position_id,
+            "realized_pnl": position.get("unrealized_pnl_usd", 0)
+        }
+    else:
+        raise HTTPException(status_code=400, detail="Position is already closed")
 
 # ==================== WEBSOCKET ====================
 
