@@ -43,6 +43,8 @@ const NavButton = ({ href, label, mobileLabel, icon: Icon }) => {
 const AppContent = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [accountMode, setAccountMode] = useState('demo'); // 'demo' or 'real'
+  const [selectedWalletId, setSelectedWalletId] = useState(null); // Selected wallet for filtering
+  const [availableWallets, setAvailableWallets] = useState([]);
   const [botStatus, setBotStatus] = useState({
     is_running: false,
     connected_clients: 0,
