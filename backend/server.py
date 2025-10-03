@@ -1109,6 +1109,45 @@ async def get_token_info(token_address: str):
         logger.error(f"Error fetching token info for {token_address}: {e}")
         return {"symbol": "UNKNOWN", "name": "Unknown Token", "decimals": 18}
 
+async def get_real_time_token_price(token_address: str):
+    """Get real-time token price from DexScreener API - FAST & ACCURATE"""
+    try:
+        url = f"https://api.dexscreener.com/latest/dex/tokens/{token_address}"
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=3)) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    pairs = data.get('pairs', [])
+                    
+                    # Find the pair with highest liquidity (most accurate)
+                    best_pair = None
+                    for pair in pairs:
+                        if pair.get('chainId') == 'bsc' and pair.get('dexId') == 'pancakeswap':
+                            if not best_pair or (pair.get('liquidity', {}).get('usd', 0) > best_pair.get('liquidity', {}).get('usd', 0)):
+                                best_pair = pair
+                    
+                    if best_pair:
+                        price_usd = float(best_pair.get('priceUsd', '0'))
+                        price_change = float(best_pair.get('priceChange', {}).get('h1', '0'))
+                        liquidity_usd = best_pair.get('liquidity', {}).get('usd', 0)
+                        volume_24h = best_pair.get('volume', {}).get('h24', 0)
+                        
+                        return {
+                            'price_usd': price_usd,
+                            'price_change_1h': price_change,
+                            'liquidity_usd': liquidity_usd,
+                            'volume_24h': volume_24h,
+                            'source': 'dexscreener_realtime'
+                        }
+                        
+        logger.warning(f"No DexScreener data found for {token_address}")
+        return None
+        
+    except Exception as e:
+        logger.error(f"Error fetching real-time price for {token_address}: {e}")
+        return None
+
 async def get_pair_info(pair_address: str):
     """Fetch pair reserves and calculate liquidity"""
     try:
