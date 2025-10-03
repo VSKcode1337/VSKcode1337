@@ -133,15 +133,17 @@ const PositionsView = ({ ws, selectedWalletId }) => {
       const minutes = totalMinutes % 60;
       const days = Math.floor(hours / 24);
       
-      // Debug log to verify calculation
-      console.log(`Time calc: ${entryTime} -> ${endTime} = ${totalMinutes}m total`);
+      // Temporary debug alert (remove after testing)
+      if (totalMinutes > 60) {
+        alert(`DEBUG: Entry: ${entryTime}, End: ${endTime}, Total Minutes: ${totalMinutes}`);
+      }
       
       if (days > 0) return `${days}d ${hours % 24}h`;
       if (hours > 0) return `${hours}h ${minutes}m`;
       return `${totalMinutes}m`;
     } catch (error) {
       console.error('Time calculation error:', error, {entryTime, exitTime});
-      return "0m";
+      return "ERROR";
     }
   };
 
