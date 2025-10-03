@@ -43,8 +43,30 @@ const WalletManager = ({ ws }) => {
 
   const fetchWallets = async () => {
     try {
+      // Fetch wallets
       const response = await axios.get(`${API}/wallets`);
-      setWallets(response.data);
+      
+      // For each wallet, refresh its real balance
+      const walletsWithBalance = await Promise.all(
+        response.data.map(async (wallet) => {
+          try {
+            if (wallet.has_real_trading) {
+              const balanceResponse = await axios.post(`${API}/wallets/${wallet.id}/check-real-balance`);
+              return {
+                ...wallet,
+                real_balance_bnb: balanceResponse.data.real_balance_bnb,
+                real_balance_usd: balanceResponse.data.real_balance_bnb * 1170
+              };
+            }
+            return wallet;
+          } catch (error) {
+            console.error(`Failed to fetch balance for ${wallet.name}:`, error);
+            return wallet;
+          }
+        })
+      );
+      
+      setWallets(walletsWithBalance);
     } catch (error) {
       console.error('Failed to fetch wallets:', error);
       toast.error('Failed to load wallets');
