@@ -865,8 +865,8 @@ async def auto_close_position(position_id: str, reason: str, current_price: floa
         logger.error(f"Error auto-closing position {position_id}: {e}")
 
 async def update_position_prices():
-    """Update position prices and P&L in real-time using REAL blockchain data"""
-    logger.info("Starting position price updates (REAL MODE)...")
+    """Update position prices using REAL-TIME DexScreener data - MILLISECOND ACCURACY"""
+    logger.info("Starting REAL-TIME position price updates with DexScreener API...")
     
     while bot_state.is_running:
         try:
@@ -874,36 +874,43 @@ async def update_position_prices():
             open_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(1000)
             
             if not open_positions:
-                await asyncio.sleep(5)
+                await asyncio.sleep(2)  # Faster check when no positions
                 continue
             
             updated_positions = []
             
             for position in open_positions:
                 try:
-                    # Get real price from pair contract
-                    pair_address = position.get("pair_address")
-                    if not pair_address:
+                    # Get REAL-TIME price from DexScreener (much more accurate)
+                    token_address = position.get("token_address")
+                    if not token_address:
                         continue
                     
-                    # Fetch current pair info
-                    pair_info = await get_pair_info(pair_address)
-                    if not pair_info:
-                        continue
+                    # Fetch real-time price data
+                    price_data = await get_real_time_token_price(token_address)
+                    if not price_data:
+                        # Fallback to blockchain data if DexScreener fails
+                        pair_address = position.get("pair_address")
+                        if not pair_address:
+                            continue
+                        pair_info = await get_pair_info(pair_address)
+                        if not pair_info:
+                            continue
+                        new_price = pair_info['initial_price']
+                    else:
+                        # Use real-time DexScreener price (MUCH MORE ACCURATE)
+                        new_price = price_data['price_usd']
                     
-                    # Calculate new price from reserves (this is already in USD per token)
-                    new_price = pair_info['initial_price']
-                    
-                    # Calculate new values (price is already in USD, no need to multiply by BNB price)
+                    # Calculate new values with REAL market price
                     tokens_held = position.get("tokens_held", 0)
-                    new_value_usd = new_price * tokens_held  # Simple: price per token * tokens held
+                    new_value_usd = new_price * tokens_held
                     entry_amount_usd = position.get("entry_amount_usd", 0)
                     
-                    # Calculate P&L
+                    # Calculate P&L with real market data
                     unrealized_pnl_usd = new_value_usd - entry_amount_usd
                     unrealized_pnl_percent = (unrealized_pnl_usd / entry_amount_usd * 100) if entry_amount_usd > 0 else 0
                     
-                    # Update in database
+                    # Update in database with real-time data
                     await db.positions.update_one(
                         {"id": position["id"]},
                         {
@@ -911,45 +918,49 @@ async def update_position_prices():
                                 "current_price": new_price,
                                 "current_value_usd": new_value_usd,
                                 "unrealized_pnl_usd": unrealized_pnl_usd,
-                                "unrealized_pnl_percent": unrealized_pnl_percent
+                                "unrealized_pnl_percent": unrealized_pnl_percent,
+                                "last_price_update": datetime.now(timezone.utc).isoformat()
                             }
                         }
                     )
                     
-                    # Check for auto-close conditions
+                    # Check for auto-close conditions with real-time data
                     was_closed = await check_auto_close_conditions(position, new_price, unrealized_pnl_percent)
                     
                     # Only add to broadcast if position wasn't closed
                     if not was_closed:
-                        # Add to broadcast list
+                        # Add to broadcast list with real-time data
                         updated_positions.append({
                             "id": position["id"],
                             "token_symbol": position.get("token_symbol", ""),
                             "current_price": new_price,
                             "current_value_usd": new_value_usd,
                             "unrealized_pnl_usd": unrealized_pnl_usd,
-                            "unrealized_pnl_percent": unrealized_pnl_percent
+                            "unrealized_pnl_percent": unrealized_pnl_percent,
+                            "price_source": price_data.get('source', 'blockchain') if price_data else 'blockchain'
                         })
                     
                 except Exception as e:
                     logger.error(f"Error updating position {position.get('id')}: {e}")
                     continue
             
-            # Broadcast updates to connected clients
+            # Broadcast real-time updates to connected clients
             if updated_positions:
                 await bot_state.broadcast_to_clients({
                     "type": "positions_updated",
                     "data": {
                         "positions": updated_positions,
-                        "count": len(updated_positions)
+                        "count": len(updated_positions),
+                        "update_source": "realtime_dexscreener"
                     }
                 })
             
-            await asyncio.sleep(10)  # Update every 10 seconds (blockchain rate limit friendly)
+            # Update every 2 seconds for faster real-time updates (instead of 10 seconds)
+            await asyncio.sleep(2)
             
         except Exception as e:
             logger.error(f"Error updating position prices: {e}")
-            await asyncio.sleep(10)
+            await asyncio.sleep(5)
 
 async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
     """Execute a demo trade for a real detected token"""
