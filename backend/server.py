@@ -238,8 +238,10 @@ async def start_sniper(background_tasks: BackgroundTasks):
         raise HTTPException(status_code=400, detail="Sniper is already running")
     
     bot_state.is_running = True
-    background_tasks.add_task(start_pair_monitoring)
-    background_tasks.add_task(update_position_prices)  # Add price update task
+    
+    # Use asyncio.create_task for long-running background tasks
+    asyncio.create_task(start_pair_monitoring())
+    asyncio.create_task(update_position_prices())
     
     await bot_state.broadcast_to_clients({
         "type": "status_update",
