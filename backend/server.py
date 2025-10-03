@@ -1378,10 +1378,21 @@ async def check_auto_close_conditions(position, current_price, unrealized_pnl_pe
                 
             target_percent = (target_multiplier - 1) * 100  # Convert 3x to 200%, 5x to 400%
             
-            if unrealized_pnl_percent >= target_percent:
+            # FIXED: Check if profit exceeds target AND hasn't been hit yet
+            if (unrealized_pnl_percent >= target_percent and 
+                target_multiplier not in position.get("take_profits_hit", [])):
+                
                 should_close = True
-                close_reason = f"💰 TAKE PROFIT {target_multiplier}x triggered! (+{target_percent:.0f}% target, actual: +{unrealized_pnl_percent:.1f}%)"
-                logger.info(f"💰 {position.get('token_symbol')} TAKE PROFIT: {close_reason}")
+                close_reason = f"💰 TAKE PROFIT {target_multiplier}x AUTO-TRIGGERED! (+{target_percent:.0f}% target, actual: +{unrealized_pnl_percent:.1f}%)"
+                logger.info(f"🚨 URGENT: {position.get('token_symbol')} {close_reason}")
+                
+                # Record that this target was hit to prevent duplicate triggers
+                current_tps_hit = position.get("take_profits_hit", [])
+                current_tps_hit.append(target_multiplier)
+                await db.positions.update_one(
+                    {"id": position_id},
+                    {"$set": {"take_profits_hit": current_tps_hit}}
+                )
                 break
         
         # 2. Time-based exit check (secondary protection)
