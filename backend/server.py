@@ -83,6 +83,7 @@ class Position(BaseModel):
     wallet_id: str
     token_address: str
     token_symbol: str
+    token_name: str = ""
     pair_address: str
     entry_price: float
     entry_amount_bnb: float
