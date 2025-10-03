@@ -581,6 +581,58 @@ async def close_all_positions():
         "total_realized_pnl": total_pnl
     }
 
+@api_router.delete("/positions/delete-all")
+async def delete_all_positions():
+    """Completely delete all positions from database"""
+    try:
+        # Find all positions to return funds to wallets first
+        all_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(1000)
+        
+        returned_funds = 0.0
+        bnb_price = 600  # Assuming 1 BNB = ~$600
+        
+        # Return funds from open positions to wallets
+        for position in all_positions:
+            current_value_usd = position.get("current_value_usd", 0)
+            if current_value_usd > 0:
+                bnb_to_return = current_value_usd / bnb_price
+                wallet_id = position.get("wallet_id")
+                
+                if wallet_id:
+                    wallet = await db.wallets.find_one({"id": wallet_id})
+                    if wallet:
+                        new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
+                        await db.wallets.update_one(
+                            {"id": wallet_id},
+                            {"$set": {"balance_bnb": new_balance}}
+                        )
+                        returned_funds += bnb_to_return
+        
+        # Delete all positions from database
+        result = await db.positions.delete_many({})
+        deleted_count = result.deleted_count
+        
+        logger.info(f"🗑️ Deleted {deleted_count} positions from database, returned {returned_funds:.4f} BNB to wallets")
+        
+        # Broadcast deletion event to all connected clients
+        await bot_state.broadcast_to_clients({
+            "type": "positions_deleted",
+            "data": {
+                "deleted_count": deleted_count,
+                "returned_funds_bnb": returned_funds
+            }
+        })
+        
+        return {
+            "message": f"Successfully deleted {deleted_count} positions",
+            "deleted_count": deleted_count,
+            "returned_funds_bnb": returned_funds
+        }
+        
+    except Exception as e:
+        logger.error(f"Error deleting all positions: {e}")
+        raise HTTPException(status_code=500, detail="Failed to delete positions")
+
 # ==================== WEBSOCKET ====================
 
 @app.websocket("/ws")
