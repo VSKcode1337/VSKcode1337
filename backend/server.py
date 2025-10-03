@@ -446,8 +446,23 @@ async def close_all_positions():
     
     closed_count = 0
     total_pnl = 0.0
+    bnb_price = 600  # Assuming 1 BNB = ~$600
     
     for position in open_positions:
+        # Calculate value to return to wallet
+        current_value_usd = position.get("current_value_usd", 0)
+        bnb_to_return = current_value_usd / bnb_price
+        
+        # Update wallet balance
+        wallet_id = position.get("wallet_id")
+        wallet = await db.wallets.find_one({"id": wallet_id})
+        if wallet:
+            new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
+            await db.wallets.update_one(
+                {"id": wallet_id},
+                {"$set": {"balance_bnb": new_balance}}
+            )
+        
         # Close each position
         await db.positions.update_one(
             {"id": position["id"]},
