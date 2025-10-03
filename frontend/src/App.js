@@ -444,7 +444,7 @@ const AppContent = () => {
                 >
                   {availableWallets.map(wallet => (
                     <option key={wallet.id} value={wallet.id} className="bg-gray-800">
-                      {wallet.name} ({wallet.balance_bnb?.toFixed(2)} BNB)
+                      {wallet.name} ({(wallet.real_balance_bnb || 0).toFixed(4)} BNB)
                     </option>
                   ))}
                 </select>
