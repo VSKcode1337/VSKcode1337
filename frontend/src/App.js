@@ -230,6 +230,14 @@ const AppContent = () => {
                   <span className="text-gray-300">
                     {isConnected && botStatus.blockchain_connected ? 'Connected' : 'Disconnected'}
                   </span>
+                  {!isConnected && (
+                    <button 
+                      onClick={() => window.location.reload()} 
+                      className="text-xs text-blue-400 hover:text-blue-300 underline ml-2"
+                    >
+                      Reconnect
+                    </button>
+                  )}
                 </div>
                 
                 <div className="text-gray-400">
