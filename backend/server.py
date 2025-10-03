@@ -1311,24 +1311,7 @@ async def execute_real_pancakeswap_sell(w3, account, token_address, token_amount
     except Exception as e:
         logger.error(f"REAL sell transaction failed: {e}")
         return None
-    """Execute a demo trade for a real detected token"""
-    try:
-        # Get trading configuration
-        config = await db.trading_config.find_one({"is_active": True})
-        if not config:
-            logger.warning("No trading config found for demo execution")
-            return
-            
-        # Get active demo wallets with balance
-        wallets = await db.wallets.find({"is_active": True, "balance_bnb": {"$gt": 0.1}}).to_list(10)
-        if not wallets:
-            logger.warning("No demo wallets with sufficient balance for trading")
-            return
-            
-        # Select a random wallet for demo trading
-        import random
-        wallet = random.choice(wallets)
-        
+
 async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
     """Execute REAL blockchain transaction on PancakeSwap"""
     try:
