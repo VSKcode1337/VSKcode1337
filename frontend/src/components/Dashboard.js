@@ -182,7 +182,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
               {stats.pairs_detected}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {stats.pairs_traded} traded ({((stats.pairs_traded / Math.max(stats.pairs_detected, 1)) * 100).toFixed(1)}%)
+              {stats.pairs_traded || 0} traded ({(((stats.pairs_traded || 0) / Math.max((stats.pairs_detected || 1), 1)) * 100).toFixed(1)}%)
             </p>
           </CardContent>
         </Card>
