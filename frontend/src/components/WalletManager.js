@@ -340,12 +340,18 @@ const WalletManager = () => {
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => {
-                      // Toggle wallet active status
-                      toast.info('Wallet status toggled');
+                    onClick={async () => {
+                      try {
+                        // Add demo funds for testing
+                        const response = await axios.post(`${API}/wallets/${wallet.id}/add-demo-funds`);
+                        toast.success(`Added ${response.data.amount} BNB demo funds!`);
+                        await fetchWallets(); // Refresh to show new balance
+                      } catch (error) {
+                        toast.error('Failed to add demo funds');
+                      }
                     }}
                   >
-                    {wallet.is_active ? 'Deactivate' : 'Activate'}
+                    Add Demo Funds
                   </Button>
                   
                   <AlertDialog>
