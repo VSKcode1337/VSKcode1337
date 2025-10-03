@@ -274,8 +274,8 @@ const AppContent = () => {
             <div className="md:hidden">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center overflow-hidden">
-                    <img src="/paradox-logo.png" alt="Paradox Bot" className="w-full h-full object-contain" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                    <img src="/paradox-logo.svg" alt="Paradox Bot" className="w-full h-full" />
                   </div>
                   <div>
                     <h1 className="text-lg font-bold text-white">Paradox Bot</h1>
