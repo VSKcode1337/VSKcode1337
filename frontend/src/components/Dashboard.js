@@ -141,8 +141,8 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       setPositions(positionsWithWallets);
       setDetectedPairs(pairsRes.data);
       setStats(calculatedStats);
-      // Initialize live pairs count from actual data
-      setLivePairsCount(detectedPairs.length);
+      // Initialize total pairs detected from database
+      setTotalPairsDetected(detectedPairs.length);
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
       toast.error('Failed to load dashboard data');
