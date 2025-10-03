@@ -689,6 +689,108 @@ async def start_pair_monitoring():
             logger.error(f"Error in pair monitoring: {e}")
             await asyncio.sleep(10)
 
+async def check_auto_close_conditions(position, current_price, unrealized_pnl_percent):
+    """Check if position should be auto-closed based on trading rules"""
+    try:
+        # Get trading configuration
+        config = await db.trading_config.find_one({"is_active": True})
+        if not config:
+            return
+        
+        position_id = position["id"]
+        entry_time = datetime.fromisoformat(position["entry_time"].replace('Z', '+00:00')) if isinstance(position["entry_time"], str) else position["entry_time"]
+        current_time = datetime.now(timezone.utc)
+        position_age_minutes = (current_time - entry_time).total_seconds() / 60
+        
+        should_close = False
+        close_reason = ""
+        
+        # 1. Time-based exit check
+        max_time = config.get("max_position_time_minutes", 90)
+        if position_age_minutes >= max_time:
+            should_close = True
+            close_reason = f"Time limit reached ({max_time} minutes)"
+            logger.info(f"⏰ Position {position.get('token_symbol')} auto-closing: {close_reason}")
+        
+        # 2. Stop loss check
+        stop_loss_percent = config.get("stop_loss_percent", 50)
+        if stop_loss_percent > 0 and unrealized_pnl_percent <= -stop_loss_percent:
+            should_close = True
+            close_reason = f"Stop loss triggered (-{stop_loss_percent}%)"
+            logger.info(f"🛑 Position {position.get('token_symbol')} auto-closing: {close_reason}")
+        
+        # 3. Take profit checks
+        take_profit_targets = config.get("take_profit_targets", [])
+        for i, target_multiplier in enumerate(take_profit_targets):
+            target_percent = (target_multiplier - 1) * 100  # Convert 10x to 900%
+            if unrealized_pnl_percent >= target_percent:
+                should_close = True
+                close_reason = f"Take profit {target_multiplier}x reached (+{target_percent:.1f}%)"
+                logger.info(f"💰 Position {position.get('token_symbol')} auto-closing: {close_reason}")
+                break
+        
+        if should_close:
+            # Auto-close the position
+            await auto_close_position(position_id, close_reason, current_price)
+            
+    except Exception as e:
+        logger.error(f"Error in auto-close check for position {position.get('id')}: {e}")
+
+async def auto_close_position(position_id: str, reason: str, current_price: float):
+    """Automatically close a position and return funds to wallet"""
+    try:
+        position = await db.positions.find_one({"id": position_id})
+        if not position or position.get("status") != "open":
+            return
+        
+        # Calculate final values
+        current_value_usd = position.get("current_value_usd", 0)
+        entry_amount_usd = position.get("entry_amount_usd", 0)
+        realized_pnl = current_value_usd - entry_amount_usd
+        
+        # Return funds to wallet
+        bnb_price = 600  # Approximate BNB price
+        bnb_to_return = current_value_usd / bnb_price
+        
+        wallet_id = position.get("wallet_id")
+        if wallet_id:
+            wallet = await db.wallets.find_one({"id": wallet_id})
+            if wallet:
+                new_balance = wallet.get("balance_bnb", 0) + bnb_to_return
+                await db.wallets.update_one(
+                    {"id": wallet_id},
+                    {"$set": {"balance_bnb": new_balance}}
+                )
+        
+        # Update position to closed
+        await db.positions.update_one(
+            {"id": position_id},
+            {
+                "$set": {
+                    "status": "closed",
+                    "exit_time": datetime.now(timezone.utc),
+                    "realized_pnl_usd": realized_pnl,
+                    "notes": f"Auto-closed: {reason}"
+                }
+            }
+        )
+        
+        # Broadcast closure
+        await bot_state.broadcast_to_clients({
+            "type": "position_closed",
+            "data": {
+                "position_id": position_id,
+                "token_symbol": position.get("token_symbol"),
+                "reason": reason,
+                "realized_pnl": realized_pnl
+            }
+        })
+        
+        logger.info(f"🔒 AUTO-CLOSED: {position.get('token_symbol')} - {reason} - P&L: ${realized_pnl:.2f}")
+        
+    except Exception as e:
+        logger.error(f"Error auto-closing position {position_id}: {e}")
+
 async def update_position_prices():
     """Update position prices and P&L in real-time using REAL blockchain data"""
     logger.info("Starting position price updates (REAL MODE)...")
