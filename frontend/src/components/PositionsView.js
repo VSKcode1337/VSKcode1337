@@ -338,7 +338,7 @@ const PositionsView = ({ ws, selectedWalletId }) => {
                           <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
                             <span>Entry: {formatCurrency(position.entry_amount_usd)}</span>
                             <span>Hold: {calculateTimeHeld(position.entry_time, position.exit_time)}</span>
-                            <span>{new Date(position.entry_time).toLocaleDateString()}</span>
+                            <span>{new Date(new Date(position.entry_time).getTime() + (60 * 60 * 1000)).toLocaleDateString('en-GB')}</span>
                           </div>
                         </div>
                       </div>
