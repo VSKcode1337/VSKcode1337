@@ -85,7 +85,7 @@ PANCAKESWAP_ROUTER_ABI = [
     }
 ]
 
-# ERC20 Token ABI (essential functions)
+# ERC20 Token ABI (complete essential functions)
 ERC20_ABI = [
     {
         "constant": True,
@@ -106,9 +106,33 @@ ERC20_ABI = [
     },
     {
         "constant": True,
+        "inputs": [
+            {"name": "_owner", "type": "address"},
+            {"name": "_spender", "type": "address"}
+        ],
+        "name": "allowance",
+        "outputs": [{"name": "", "type": "uint256"}],
+        "type": "function"
+    },
+    {
+        "constant": True,
         "inputs": [],
         "name": "decimals",
         "outputs": [{"name": "", "type": "uint8"}],
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "symbol",
+        "outputs": [{"name": "", "type": "string"}],
+        "type": "function"
+    },
+    {
+        "constant": True,
+        "inputs": [],
+        "name": "name",
+        "outputs": [{"name": "", "type": "string"}],
         "type": "function"
     }
 ]
