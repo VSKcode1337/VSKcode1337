@@ -1232,15 +1232,54 @@ async def execute_real_pancakeswap_trade(detected_pair: NewPairEvent):
             logger.error("No RPC configuration found - cannot execute real trades!")
             return
         
-        # Get active wallet with real private key
-        wallets = await db.wallets.find({"is_active": True, "balance_bnb": {"$gt": 0.01}}).to_list(10)
+        # Get active wallet with real private key and real balance
+        wallets = await db.wallets.find({
+            "is_active": True, 
+            "private_key": {"$exists": True, "$ne": None, "$ne": ""}
+        }).to_list(10)
+        
         if not wallets:
-            logger.warning("No wallets with sufficient balance for real trading")
+            logger.warning("No wallets with private keys for real trading")
             return
             
-        # Select wallet for trading
-        import random
-        wallet = random.choice(wallets)
+        # Check which wallet has sufficient real balance
+        suitable_wallet = None
+        for wallet in wallets:
+            private_key = wallet.get('private_key')
+            if not private_key:
+                continue
+                
+            try:
+                # Get real balance from blockchain
+                from eth_account import Account
+                account = Account.from_key(private_key)
+                w3_temp = Web3(Web3.HTTPProvider(rpc_config['bsc_rpc_http']))
+                
+                real_balance_wei = w3_temp.eth.get_balance(account.address)
+                real_balance_bnb = float(w3_temp.from_wei(real_balance_wei, 'ether'))
+                
+                # Calculate minimum needed (trade amount + gas)
+                trade_amount_usd = config.get('trade_amount_usd', 50)
+                bnb_price_usd = 600
+                trade_amount_bnb = trade_amount_usd / bnb_price_usd
+                min_balance_needed = trade_amount_bnb + 0.01  # Add gas buffer
+                
+                logger.info(f"💰 Wallet {wallet.get('name')}: {real_balance_bnb:.6f} BNB (need: {min_balance_needed:.6f})")
+                
+                if real_balance_bnb >= min_balance_needed:
+                    suitable_wallet = wallet
+                    break
+                    
+            except Exception as e:
+                logger.error(f"Error checking wallet {wallet.get('name')}: {e}")
+                continue
+        
+        if not suitable_wallet:
+            logger.warning("No wallets with sufficient real BNB balance for trading")
+            return
+            
+        # Use the suitable wallet
+        wallet = suitable_wallet
         private_key = wallet.get('private_key')
         
         if not private_key:
