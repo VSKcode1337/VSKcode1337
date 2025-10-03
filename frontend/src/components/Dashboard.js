@@ -85,7 +85,14 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       const realizedPnL = closedPositions.reduce((sum, p) => sum + (p.realized_pnl_usd || p.unrealized_pnl_usd || 0), 0);
       
       // Calculate UNREALIZED PnL (from open positions only)  
-      const unrealizedPnL = openPositions.reduce((sum, p) => sum + (p.unrealized_pnl_usd || 0), 0);
+      const unrealizedPnL = openPositions.reduce((sum, p) => {
+        const pnl = p.unrealized_pnl_usd || 0;
+        console.log(`Position ${p.token_symbol}: Unrealized PnL = ${pnl}`);
+        return sum + pnl;
+      }, 0);
+      
+      console.log(`Total Open Positions: ${openPositions.length}`);
+      console.log(`Calculated Unrealized PnL: ${unrealizedPnL}`);
       
       // Calculate TOTAL PnL (realized + unrealized)
       const totalPnL = realizedPnL + unrealizedPnL;
