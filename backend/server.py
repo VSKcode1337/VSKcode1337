@@ -1000,9 +1000,19 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
         import random
         wallet = random.choice(wallets)
         
-        # REALISTIC DEMO PRICING (avoid scam tokens with fake prices)
-        # Use standardized demo prices to ensure realistic P&L
-        realistic_demo_price = 0.50  # Start all demo tokens at $0.50
+        # Get REAL entry price from DexScreener (matches the links exactly!)
+        real_price_data = await get_real_time_token_price(detected_pair.token_address)
+        
+        if real_price_data and real_price_data['price_usd'] > 0:
+            entry_price_usd = real_price_data['price_usd']
+            logger.info(f"📊 REAL ENTRY PRICE: {detected_pair.token_symbol} = ${entry_price_usd:.8f} (DexScreener)")
+        else:
+            # Fallback to REAL PancakeSwap calculation (not simulation!)
+            entry_price_usd = detected_pair.initial_price
+            if entry_price_usd <= 0:
+                logger.warning(f"Invalid real price for {detected_pair.token_symbol} - skipping trade")
+                return
+            logger.info(f"📊 REAL ENTRY PRICE: {detected_pair.token_symbol} = ${entry_price_usd:.8f} (PancakeSwap)")
         
         # Calculate trade size based on current config
         trade_amount_usd = config.get('trade_amount_usd', 50)
@@ -1014,12 +1024,12 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             logger.warning(f"Wallet {wallet.get('name')} insufficient balance for ${trade_amount_usd} trade")
             return
             
-        # Calculate tokens purchased with realistic price
-        tokens_purchased = trade_amount_usd / realistic_demo_price
+        # Calculate REAL tokens purchased based on REAL market price
+        tokens_purchased = trade_amount_usd / entry_price_usd
         
-        logger.info(f"📊 Creating realistic demo position: {detected_pair.token_symbol} @ ${realistic_demo_price} = {tokens_purchased} tokens")
+        logger.info(f"💰 REAL TRADE: {detected_pair.token_symbol} - ${trade_amount_usd} ÷ ${entry_price_usd:.8f} = {tokens_purchased:.2f} tokens")
             
-        # Create demo position with REALISTIC calculations
+        # Create position with REAL market data (matches DexScreener links)
         demo_position = Position(
             wallet_id=wallet['id'],
             token_address=detected_pair.token_address,
@@ -1028,10 +1038,10 @@ async def execute_demo_trade_for_real_token(detected_pair: NewPairEvent):
             pair_address=detected_pair.pair_address,
             entry_amount_bnb=trade_amount_bnb,
             entry_amount_usd=trade_amount_usd,
-            entry_price=realistic_demo_price,  # Realistic demo price
-            current_price=realistic_demo_price,  # Start equal
-            current_value_usd=trade_amount_usd,  # Starts equal
-            tokens_held=tokens_purchased,  # Realistic token count
+            entry_price=entry_price_usd,  # REAL market price
+            current_price=entry_price_usd,  # Start with REAL price
+            current_value_usd=trade_amount_usd,  # Current value
+            tokens_held=tokens_purchased,  # REAL token count
             entry_time=datetime.now(timezone.utc),
             status="open",
             unrealized_pnl_usd=0.0,  # Starts at zero
