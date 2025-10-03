@@ -351,21 +351,25 @@ const ConfigPanel = () => {
               <CardContent className="space-y-3">
                 <Button 
                   variant="outline" 
-                  className="w-full justify-start"
+                  className="w-full justify-start border-green-500 text-green-400 hover:bg-green-500/10"
                   onClick={() => {
                     setConfig(prev => ({
                       ...prev,
-                      trade_amount_usd: 25,
+                      trade_amount_usd: 75,
+                      max_trade_amount_usd: 150,
                       max_tax_buy_percent: 3,
                       max_tax_sell_percent: 3,
-                      min_liquidity_usd: 50000,
-                      stop_loss_percent: 30
+                      min_liquidity_usd: 100000,
+                      stop_loss_percent: 25,
+                      take_profit_targets: [3, 5, 8],
+                      take_profit_percentages: [60, 30, 10],
+                      max_position_time_minutes: 20,
+                      slippage_tolerance_percent: 8
                     }));
-                    toast.info('Applied Conservative preset');
+                    toast.success('Applied HIGH WIN-RATE preset - Recommended!');
                   }}
                 >
-                  <Shield className="h-4 w-4 mr-2" />
-                  Conservative (Low Risk)
+                  🎯 HIGH WIN-RATE (Recommended)
                 </Button>
                 
                 <Button 
