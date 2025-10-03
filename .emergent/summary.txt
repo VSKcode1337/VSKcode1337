@@ -1,0 +1,107 @@
+<analysis>
+The trajectory documents the development of a complex PancakeSwap (PCS) sniping bot, starting from a detailed product requirements document. The user, seeking a professional and high-speed trading tool, guided the AI engineer through an iterative development process.
+
+The initial phase involved setting up the full-stack application (FastAPI, React, MongoDB) and scaffolding the core UI components. A significant portion of the work involved guiding the user through external dependencies, such as obtaining API keys from QuickNode and BSCScan and setting up a personal crypto wallet (MetaMask).
+
+The development was heavily driven by user feedback, leading to a cycle of bug fixes and feature enhancements. The AI engineer addressed numerous issues, including backend validation errors, WebSocket connectivity problems, UI display bugs (incorrect P&L, unsynchronized data, timezone errors), and missing features like mobile responsiveness and a navigation menu. Key features added based on user requests include a safe demo mode with separate test wallets, recommended trading configurations for high win-rates, and secure handling of private keys.
+
+The final interactions focused on data persistence. The user asked if their configuration and trading data were saved and specifically inquired about GitHub. The AI verified that all data was securely stored in the MongoDB database but discovered through a On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	frontend/yarn.lock
+	yarn.lock
+
+nothing added to commit but untracked files present (use "git add" to track) command that the code itself had not been committed to a Git repository, which became the immediate next point of action.
+</analysis>
+
+<product_requirements>
+The goal is to build a PCS High-Win Sniper + Auto-TP, a high-frequency trading bot for the BNB Smart Chain. The application must automatically detect new token listings on PancakeSwap, execute trades within seconds, and manage positions with predefined rules.
+
+**Core Features:**
+1.  **Real-Time Sniping:** Subscribe to PancakeSwap's  and  events via WebSocket to detect new liquidity pools instantly.
+2.  **Automated Trading Logic:** Implement a two-stage buy process (probe buy + full buy) to avoid honeypot scams.
+3.  **Risk Management:** Integrate comprehensive risk filters, including minimum liquidity, token tax limits, ownership checks, and holder concentration analysis.
+4.  **Position Management:** Automatically execute take-profits at user-defined multipliers (e.g., 10x, 20x, 30x) and apply stop-loss or time-based exits.
+5.  **User Interface (UI):** A professional and mobile-responsive web dashboard allowing users to:
+    *   Start and stop the sniper bot.
+    *   Manage multiple trading wallets securely.
+    *   Configure API keys (QuickNode, BSCScan) and trading parameters (trade size, risk levels).
+    *   Monitor live performance, including open positions, realized/unrealized P&L, and a feed of newly detected pairs.
+6.  **Demo Mode:** A safe testing environment with dedicated demo wallets and simulated funds to allow users to test strategies without financial risk.
+</product_requirements>
+
+<key_technical_concepts>
+- **Full-Stack Application:** React frontend, FastAPI backend, MongoDB database.
+- **Blockchain Connectivity:**  library for interacting with the BNB Smart Chain.
+- **Real-Time Data Streaming:** WebSockets () for pushing live updates (new pairs, status changes, P&L) from the backend to the frontend.
+- **External Service Integration:** QuickNode for reliable RPC and WebSocket endpoints, and BSCScan API for on-chain data verification.
+- **Data Persistence:** MongoDB for storing user configurations, wallet details, and trading positions.
+</key_technical_concepts>
+
+<code_architecture>
+The application follows a standard client-server architecture with a React frontend communicating with a FastAPI backend via HTTP REST APIs and a WebSocket connection. Data is persisted in a MongoDB database.
+
+**Directory Structure:**
+
+
+- ****
+  - **Importance:** This is the heart of the application. It's a FastAPI server that exposes all API endpoints for managing the bot (, ), wallets (), and positions (). It also hosts the crucial WebSocket () endpoint for broadcasting real-time events to the UI.
+  - **Changes:** The file was extensively modified to implement business logic, including wallet creation with private key validation, position closing logic, demo fund functionality, and broadcasting real-time updates for P&L and new pairs. Pydantic models were refined to handle data validation and serialization correctly.
+
+- ****
+  - **Importance:** The root component of the React application. It sets up the router, manages the global WebSocket connection, and holds the primary state for the bot's status.
+  - **Changes:** Major changes included implementing the WebSocket connection with automatic reconnect logic, adding a client-side navigation menu, and creating a global context for real-time data to be shared across components like the Dashboard and Positions view. It was repeatedly debugged to fix UI rendering issues and ensure the connection status indicators were accurate.
+
+- ****
+  - **Importance:** The main user-facing view. It displays all critical real-time information: P&L stats, win rate, pairs detected, active positions, and a live feed of new tokens.
+  - **Changes:** This component underwent the most user-driven revisions. Fixes were implemented to correctly calculate and display separate realized and unrealized P&L, synchronize the Pairs Detected count with WebSocket events, display timestamps in the user's local timezone (London Time), and update the UI instantly when positions were opened or closed.
+
+- ****
+  - **Importance:** Manages the UI for adding, viewing, and deleting user trading wallets.
+  - **Changes:** It was updated to handle wallet addition/deletion errors, securely mask private keys on the screen, and implement a separate, safe system for creating and funding Demo Wallets versus Real Wallets.
+
+- ****
+  - **Importance:** Allows the user to input their API keys and configure the bot's trading strategy.
+  - **Changes:** A feature was added to load pre-configured Recommended Settings to help the user start with a high-win-rate strategy.
+</code_architecture>
+
+<pending_tasks>
+- **GitHub Integration:** The user asked if the code was saved on GitHub. The current On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	frontend/yarn.lock
+	yarn.lock
+
+nothing added to commit but untracked files present (use "git add" to track) shows numerous untracked files. The code needs to be added, committed, and pushed to a repository for version control and backup.
+- **Agent Context Limit:** The user asked if Agent context limit was due to low credits. This user concern needs to be addressed and explained.
+</pending_tasks>
+
+<current_work>
+Immediately before this summary, the user expressed concern about data persistence and security by asking, I saved can u check if is saved and safe the info ? and Is it saved ongithub ?.
+
+In response, the AI engineer performed a thorough data verification by directly querying the MongoDB database for several collections:
+1.  **Wallets:** Confirmed that 2 wallets, including a Test Wallet and MAIN WALLET, were saved correctly.
+2.  **Positions:** Verified that 21 total positions (16 open, 5 closed) were persisted with their P&L data.
+3.  **Configuration:** Checked that the user's trading settings (0 trade amount, 10/20/30x TP, etc.) were saved.
+4.  **Pairs:** Confirmed 50 pairs were stored in the database.
+
+The AI engineer concluded that all user data was successfully and securely saved in the database.
+
+To address the GitHub question, the AI ran On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	frontend/yarn.lock
+	yarn.lock
+
+nothing added to commit but untracked files present (use "git add" to track), which revealed that while the data was safe, the application code itself was not under version control, as many files were listed as Untracked. The immediate task was to report this finding to the user.
+</current_work>
+
+<optional_next_step>
+Explain the results of the On branch main
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	frontend/yarn.lock
+	yarn.lock
+
+nothing added to commit but untracked files present (use "git add" to track) command, clarifying that while all trading data is saved securely in the database, the code is not yet backed up on GitHub. Then, offer to initialize the repository and push the code.
+</optional_next_step>
