@@ -865,8 +865,8 @@ async def auto_close_position(position_id: str, reason: str, current_price: floa
         logger.error(f"Error auto-closing position {position_id}: {e}")
 
 async def update_position_prices():
-    """Update position prices using REAL-TIME DexScreener data - MILLISECOND ACCURACY"""
-    logger.info("Starting REAL-TIME position price updates with DexScreener API...")
+    """Update position prices using REAL PancakeSwap data - MILLISECOND UPDATES"""
+    logger.info("🚀 Starting REAL PANCAKESWAP price updates (NO SIMULATION!)")
     
     while bot_state.is_running:
         try:
@@ -874,11 +874,12 @@ async def update_position_prices():
             open_positions = await db.positions.find({"status": {"$in": ["open", "partial"]}}).to_list(1000)
             
             if not open_positions:
-                await asyncio.sleep(2)  # Faster check when no positions
+                await asyncio.sleep(0.5)  # Check every 500ms when no positions
                 continue
             
             updated_positions = []
             
+            # Process each position with REAL data
             for position in open_positions:
                 try:
                     # GET REAL PANCAKESWAP PRICES - NO SIMULATION!
