@@ -325,6 +325,24 @@ async def get_trading_stats():
     stats = await db.trading_stats.find_one({}) or TradingStats().dict()
     return TradingStats(**stats)
 
+@api_router.post("/wallets/{wallet_id}/add-demo-funds")
+async def add_demo_funds(wallet_id: str):
+    import random
+    
+    # Add demo funds between 0.5-2.0 BNB
+    demo_amount = round(random.uniform(0.5, 2.0), 4)
+    
+    # Update wallet balance in database
+    result = await db.wallets.update_one(
+        {"id": wallet_id},
+        {"$inc": {"balance_bnb": demo_amount}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Wallet not found")
+    
+    return {"message": "Demo funds added successfully", "amount": demo_amount}
+
 @api_router.post("/positions/{position_id}/close")
 async def close_position(position_id: str):
     position = await db.positions.find_one({"id": position_id})
