@@ -881,14 +881,13 @@ async def update_position_prices():
             
             for position in open_positions:
                 try:
-                    # REALISTIC DEMO PRICE SIMULATION
-                    # Simulate realistic price movements instead of using broken real prices
+                    # REALISTIC NEW TOKEN LISTING VOLATILITY SIMULATION
                     import random
                     
                     entry_price = position.get("entry_price", 0.50)
                     entry_amount_usd = position.get("entry_amount_usd", 50)
                     
-                    # Simulate realistic price changes (-50% to +200% over time)
+                    # Calculate position age for volatility patterns
                     entry_time_raw = position.get("entry_time")
                     if isinstance(entry_time_raw, str):
                         entry_time = datetime.fromisoformat(entry_time_raw.replace('Z', '+00:00'))
@@ -900,25 +899,45 @@ async def update_position_prices():
                     current_time = datetime.now(timezone.utc)
                     position_age_minutes = (current_time - entry_time).total_seconds() / 60
                     
-                    # Realistic price simulation based on age and randomness
-                    base_volatility = random.uniform(-0.05, 0.05)  # ±5% base movement
-                    time_trend = random.uniform(-0.02, 0.03) * (position_age_minutes / 10)  # Time-based trend
+                    # NEW TOKEN LISTING VOLATILITY PATTERNS
+                    if position_age_minutes < 5:
+                        # EARLY PUMP PHASE (0-5 minutes): Massive volatility
+                        pump_chance = random.uniform(0, 1)
+                        if pump_chance > 0.7:  # 30% chance of major pump
+                            volatility = random.uniform(200, 2000)  # 200% to 2000% pump!
+                        elif pump_chance > 0.4:  # 30% chance of medium pump  
+                            volatility = random.uniform(50, 200)   # 50% to 200% pump
+                        else:  # 40% chance of dump/sideways
+                            volatility = random.uniform(-70, 30)   # -70% to +30%
+                    elif position_age_minutes < 15:
+                        # CORRECTION PHASE (5-15 minutes): High volatility correction
+                        volatility = random.uniform(-80, 100)  # Big swings ±80-100%
+                    else:
+                        # STABILIZATION PHASE (15+ minutes): Moderate volatility
+                        volatility = random.uniform(-40, 60)   # ±40-60%
                     
-                    # Apply realistic price change
-                    price_change_percent = (base_volatility + time_trend) * 100
-                    price_multiplier = 1 + (price_change_percent / 100)
+                    # Apply volatility with some smoothing
+                    price_multiplier = 1 + (volatility / 100)
                     new_price_usd = entry_price * price_multiplier
                     
-                    # Calculate realistic current value
+                    # Ensure price doesn't go to zero (minimum $0.001)
+                    new_price_usd = max(new_price_usd, 0.001)
+                    
+                    # Calculate current value
                     new_value_usd = entry_amount_usd * price_multiplier
+                    new_value_usd = max(new_value_usd, 0.001)  # Minimum value
                     
-                    # Calculate realistic P&L
+                    # Calculate P&L
                     unrealized_pnl_usd = new_value_usd - entry_amount_usd
-                    unrealized_pnl_percent = price_change_percent
+                    unrealized_pnl_percent = volatility
                     
-                    logger.info(f"💰 {position.get('token_symbol')}: ${entry_price:.3f} -> ${new_price_usd:.3f} = {unrealized_pnl_percent:.2f}% (Realistic Demo)")
+                    # Log exciting movements
+                    if abs(volatility) > 50:
+                        logger.info(f"🚀 {position.get('token_symbol')}: EXPLOSIVE MOVE! {volatility:.1f}% (${entry_amount_usd:.0f} -> ${new_value_usd:.0f})")
+                    else:
+                        logger.info(f"💰 {position.get('token_symbol')}: ${entry_price:.3f} -> ${new_price_usd:.3f} = {volatility:.1f}% (NEW TOKEN VOLATILITY)")
                     
-                    # Update in database with realistic data
+                    # Update in database with volatile new listing data
                     await db.positions.update_one(
                         {"id": position["id"]},
                         {
@@ -928,7 +947,7 @@ async def update_position_prices():
                                 "unrealized_pnl_usd": unrealized_pnl_usd,
                                 "unrealized_pnl_percent": unrealized_pnl_percent,
                                 "last_price_update": datetime.now(timezone.utc).isoformat(),
-                                "price_source": "Realistic Demo Simulation"
+                                "price_source": "New Token Listing Volatility"
                             }
                         }
                     )
