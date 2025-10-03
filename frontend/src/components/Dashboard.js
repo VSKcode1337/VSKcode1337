@@ -77,13 +77,18 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId }) => {
         toast.error('Failed to load wallets data');
       }
       
-      // Process data even if some calls failed
+      // Process data and filter by selected wallet
       const allPositions = positionsData;
       const wallets = walletsData;
       const detectedPairs = detectedPairsData;
       
+      // Filter positions by selected wallet if specified
+      const filteredPositions = selectedWalletId 
+        ? allPositions.filter(position => position.wallet_id === selectedWalletId)
+        : allPositions;
+      
       // Add wallet names to positions
-      const positionsWithWallets = allPositions.map(position => {
+      const positionsWithWallets = filteredPositions.map(position => {
         const wallet = wallets.find(w => w.id === position.wallet_id);
         return {
           ...position,
