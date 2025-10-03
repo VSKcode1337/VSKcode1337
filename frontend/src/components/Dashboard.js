@@ -58,7 +58,10 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId }) => {
 
       // Fetch stats with individual error handling
       try {
-        const statsRes = await axios.get(`${API}/stats`);
+        const statsUrl = selectedWalletId 
+          ? `${API}/stats?wallet_id=${selectedWalletId}` 
+          : `${API}/stats`;
+        const statsRes = await axios.get(statsUrl);
         statsData = statsRes.data;
       } catch (error) {
         console.error('Failed to fetch stats:', error);
