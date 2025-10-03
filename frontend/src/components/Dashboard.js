@@ -203,10 +203,10 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
           </CardHeader>
           <CardContent>
             <div className="text-xl font-bold text-white">
-              {formatPnL(stats.unrealized_pnl_usd || 0)}
+              {formatPnL(positions.reduce((sum, p) => sum + (p.status === 'open' ? (p.unrealized_pnl_usd || 0) : 0), 0))}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              Open positions
+              {positions.filter(p => p.status === 'open').length} open positions
             </p>
           </CardContent>
         </Card>
