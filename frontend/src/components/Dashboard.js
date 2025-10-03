@@ -136,47 +136,6 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
     }
   }, []);
 
-  const resetDetectedPairs = useCallback(async () => {
-    console.log("🔧 Reset Pairs button clicked!"); // Debug log
-    
-    // Confirmation dialog
-    const confirmed = window.confirm(
-      'Are you sure you want to clear all detected pairs?\n\nThis will permanently delete all pair history and cannot be undone.'
-    );
-    
-    if (!confirmed) {
-      console.log("🚫 Reset cancelled by user");
-      return;
-    }
-
-    console.log("🗑️ Starting pairs reset...");
-    
-    try {
-      const response = await axios.delete(`${API}/pairs/detected`);
-      console.log("✅ Backend reset successful:", response.data);
-      
-      // Clear the local state
-      setDetectedPairs([]);
-      setTotalPairsDetected(0);
-      
-      // Update stats to reflect reset
-      setStats(prev => ({
-        ...prev,
-        pairs_detected: 0
-      }));
-      
-      toast.success(`🗑️ Successfully cleared ${response.data.cleared_count} pairs`, {
-        description: 'Pair detection history has been reset'
-      });
-      
-      // Manual refresh instead of calling fetchDashboardData
-      window.location.reload();
-    } catch (error) {
-      console.error('Failed to reset pairs:', error);
-      toast.error('Failed to reset detected pairs');
-    }
-  }, []); // Empty dependency array
-
   useEffect(() => {
     fetchDashboardData();
     const interval = setInterval(fetchDashboardData, 5000);
