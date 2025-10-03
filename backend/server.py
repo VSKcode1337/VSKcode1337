@@ -978,6 +978,9 @@ async def scan_pairs_via_http():
                 # Store in database
                 await db.detected_pairs.insert_one(new_pair.dict())
                 
+                # Execute demo trade with real token data
+                await execute_demo_trade_for_real_token(new_pair)
+                
                 # Broadcast to connected clients
                 await bot_state.broadcast_to_clients({
                     "type": "new_pair_detected",
