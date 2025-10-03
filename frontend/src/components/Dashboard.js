@@ -678,7 +678,7 @@ const Dashboard = ({ botStatus, isConnected, ws, selectedWalletId, availableWall
                         <div>
                           <span className="text-gray-400">Time: </span>
                           <span className="text-white">
-                            {Math.floor((Date.now() - new Date(position.entry_time).getTime()) / 60000)}m
+                            {Math.floor((Date.parse(new Date().toISOString()) - Date.parse(position.entry_time)) / (1000 * 60))}m
                           </span>
                         </div>
                       </div>
