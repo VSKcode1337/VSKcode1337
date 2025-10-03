@@ -664,12 +664,12 @@ async def update_position_prices():
                     if not pair_info:
                         continue
                     
-                    # Calculate new price from reserves
+                    # Calculate new price from reserves (this is already in USD per token)
                     new_price = pair_info['initial_price']
                     
-                    # Calculate new values
+                    # Calculate new values (price is already in USD, no need to multiply by BNB price)
                     tokens_held = position.get("tokens_held", 0)
-                    new_value_usd = new_price * tokens_held * 600  # BNB price in USD
+                    new_value_usd = new_price * tokens_held  # Simple: price per token * tokens held
                     entry_amount_usd = position.get("entry_amount_usd", 0)
                     
                     # Calculate P&L
