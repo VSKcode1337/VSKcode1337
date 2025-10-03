@@ -127,7 +127,7 @@ const ParadoxControl = ({ botStatus }) => {
         </CardHeader>
         
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-gray-800/30 p-4 rounded-lg">
               <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                 <Zap className="h-4 w-4" />
@@ -156,11 +156,6 @@ const ParadoxControl = ({ botStatus }) => {
                   Start
                 </Button>
               </div>
-            </div>
-
-            <div className="bg-gray-800/30 p-4 rounded-lg">
-              <div className="text-gray-400 text-sm mb-1">Pairs Detected</div>
-              <div className="text-white text-2xl font-bold">{stats.totalPairs}</div>
             </div>
 
             <div className="bg-gray-800/30 p-4 rounded-lg">
