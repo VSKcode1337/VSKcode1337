@@ -239,6 +239,7 @@ async def start_sniper(background_tasks: BackgroundTasks):
     
     bot_state.is_running = True
     background_tasks.add_task(start_pair_monitoring)
+    background_tasks.add_task(update_position_prices)  # Add price update task
     
     await bot_state.broadcast_to_clients({
         "type": "status_update",
