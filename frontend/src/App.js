@@ -203,7 +203,7 @@ const AppContent = () => {
                 {/* Current Time */}
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-300">
-                    London: {new Date().toLocaleTimeString('en-GB', { 
+                    London: {currentTime.toLocaleTimeString('en-GB', { 
                       timeZone: 'Europe/London',
                       hour12: false 
                     })}
