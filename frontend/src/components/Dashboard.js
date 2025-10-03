@@ -291,7 +291,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
       console.error('Failed to reset pairs:', error);
       toast.error('Failed to reset detected pairs');
     }
-  }, [setDetectedPairs, setTotalPairsDetected, setStats, fetchDashboardData]);
+  }, [fetchDashboardData]);
 
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-US', {
