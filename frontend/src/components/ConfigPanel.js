@@ -383,50 +383,51 @@ const ConfigPanel = () => {
                 <div className="space-y-2">
                   <Label className="text-sm text-gray-300">Other Presets:</Label>
                 
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start"
-                  onClick={() => {
-                    setConfig(prev => ({
-                      ...prev,
-                      trade_amount_usd: 50,
-                      max_tax_buy_percent: 6,
-                      max_tax_sell_percent: 6,
-                      min_liquidity_usd: 50000,
-                      stop_loss_percent: 35,
-                      take_profit_targets: [5, 10, 15],
-                      take_profit_percentages: [50, 30, 20],
-                      max_position_time_minutes: 45,
-                      slippage_tolerance_percent: 10
-                    }));
-                    toast.info('Applied Balanced preset');
-                  }}
-                >
-                  <Settings className="h-4 w-4 mr-2" />
-                  Balanced (Medium Risk)
-                </Button>
-                
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start border-red-500 text-red-400 hover:bg-red-500/10"
-                  onClick={() => {
-                    setConfig(prev => ({
-                      ...prev,
-                      trade_amount_usd: 25,
-                      max_tax_buy_percent: 2,
-                      max_tax_sell_percent: 2,
-                      min_liquidity_usd: 200000,
-                      stop_loss_percent: 15,
-                      take_profit_targets: [2, 3, 4],
-                      take_profit_percentages: [70, 20, 10],
-                      max_position_time_minutes: 10,
-                      slippage_tolerance_percent: 6
-                    }));
-                    toast.info('Applied ULTRA SAFE preset');
-                  }}
-                >
-                  🛡️ ULTRA SAFE (Highest Win Rate)
-                </Button>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setConfig(prev => ({
+                        ...prev,
+                        trade_amount_usd: 50,
+                        max_tax_buy_percent: 6,
+                        max_tax_sell_percent: 6,
+                        min_liquidity_usd: 50000,
+                        stop_loss_percent: 35,
+                        take_profit_targets: [5, 10, 15],
+                        take_profit_percentages: [50, 30, 20],
+                        max_position_time_minutes: 45,
+                        slippage_tolerance_percent: 10
+                      }));
+                      toast.info('Applied Balanced preset');
+                    }}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Balanced (Medium Risk)
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start border-red-500 text-red-400 hover:bg-red-500/10"
+                    onClick={() => {
+                      setConfig(prev => ({
+                        ...prev,
+                        trade_amount_usd: 25,
+                        max_tax_buy_percent: 2,
+                        max_tax_sell_percent: 2,
+                        min_liquidity_usd: 200000,
+                        stop_loss_percent: 15,
+                        take_profit_targets: [2, 3, 4],
+                        take_profit_percentages: [70, 20, 10],
+                        max_position_time_minutes: 10,
+                        slippage_tolerance_percent: 6
+                      }));
+                      toast.info('Applied ULTRA SAFE preset');
+                    }}
+                  >
+                    🛡️ ULTRA SAFE (Highest Win Rate)
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </div>
