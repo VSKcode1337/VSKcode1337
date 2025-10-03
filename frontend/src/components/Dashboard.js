@@ -284,7 +284,7 @@ const Dashboard = ({ botStatus, isConnected, ws }) => {
               {livePairsCount > 0 ? livePairsCount : (stats.pairs_detected || 50)}
             </div>
             <p className="text-xs text-gray-400 mt-1">
-              {stats.pairs_traded || 0} traded ({(((stats.pairs_traded || 0) / Math.max(Math.max(stats.pairs_detected || 0, livePairsCount), 1)) * 100).toFixed(1)}%)
+              Base: {stats.pairs_detected || 50} + Feed: {detectedPairs.length} = Live count updating
             </p>
           </CardContent>
         </Card>
