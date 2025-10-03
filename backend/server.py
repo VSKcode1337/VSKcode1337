@@ -1471,9 +1471,9 @@ async def auto_close_position(position_id: str, reason: str, current_price: floa
         
         logger.info(f"🤖 AUTO-CLOSE: Selling {actual_tokens:.2f} {position.get('token_symbol')} - {reason}")
         
-        # Execute REAL auto-sell on PancakeSwap
+        # Execute BULLETPROOF auto-sell on PancakeSwap
         config = await db.trading_config.find_one({"is_active": True})
-        sell_tx_hash = await execute_real_pancakeswap_sell(
+        sell_tx_hash = await execute_bulletproof_pancakeswap_sell(
             w3, account, token_address, actual_tokens, config or {}
         )
         
