@@ -133,7 +133,13 @@ class WalletResponse(BaseModel):
     name: str
     address: str
     is_active: bool = True
-    balance_bnb: float = 0.0
+    balance_bnb: float = 0.0  # Demo balance
+    real_balance_bnb: float = 0.0  # Real blockchain balance
+    real_balance_usd: float = 0.0  # USD equivalent
+    private_key: Optional[str] = None  # Masked for security
+    has_real_trading: bool = False  # Indicates if real trading enabled
+    blockchain_verified: bool = False
+    last_balance_check: Optional[datetime] = None
     created_at: datetime
 
 class TradingConfig(BaseModel):
