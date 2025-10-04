@@ -1967,9 +1967,16 @@ async def execute_bulletproof_pancakeswap_sell(w3, account, token_address, token
         # STEP 3: BUILD TRANSACTION WITH MAXIMUM GAS
         deadline = int(time.time()) + 300  # 5 minute deadline
         
-        # Use VERY HIGH gas price to beat MEV bots
-        max_gas_price = w3.to_wei(25, 'gwei')  # 25 Gwei - very high priority
+        # Use REASONABLE gas price that won't exhaust balance
+        current_gas_price = w3.eth.gas_price
+        reasonable_gas_price = max(w3.to_wei(5, 'gwei'), current_gas_price)  # Minimum 5 Gwei or current market
+        max_gas_price = w3.to_wei(10, 'gwei')  # Cap at 10 Gwei (reasonable)
         
+        gas_price = min(reasonable_gas_price, max_gas_price)
+        
+        logger.info(f"⚡ Using REASONABLE gas: {w3.from_wei(gas_price, 'gwei'):.1f} Gwei")
+        
+        # Build sell transaction with REASONABLE gas
         transaction = router_contract.functions.swapExactTokensForETHSupportingFeeOnTransferTokens(
             token_amount_wei,
             min_bnb,
@@ -1978,8 +1985,8 @@ async def execute_bulletproof_pancakeswap_sell(w3, account, token_address, token
             deadline
         ).build_transaction({
             'from': account.address,
-            'gas': 500000,  # VERY HIGH gas limit
-            'gasPrice': max_gas_price,  # MAXIMUM priority
+            'gas': 200000,  # REASONABLE gas limit (not 500000)
+            'gasPrice': gas_price,  # REASONABLE gas price
             'nonce': w3.eth.get_transaction_count(account.address),
             'chainId': 56
         })
