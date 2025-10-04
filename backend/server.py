@@ -1970,7 +1970,7 @@ async def execute_bulletproof_pancakeswap_sell(w3, account, token_address, token
         # Use VERY HIGH gas price to beat MEV bots
         max_gas_price = w3.to_wei(25, 'gwei')  # 25 Gwei - very high priority
         
-        transaction = router_contract.functions.swapExactTokensForETH(
+        transaction = router_contract.functions.swapExactTokensForETHSupportingFeeOnTransferTokens(
             token_amount_wei,
             min_bnb,
             path,
@@ -2100,7 +2100,7 @@ async def execute_bulletproof_pancakeswap_sell(w3, account, token_address, token
         logger.info(f"⚡ Using AGGRESSIVE gas: {w3.from_wei(gas_price, 'gwei'):.1f} Gwei (market: {w3.from_wei(current_gas_price, 'gwei'):.1f})")
         
         # Build sell transaction
-        transaction = router_contract.functions.swapExactTokensForETH(
+        transaction = router_contract.functions.swapExactTokensForETHSupportingFeeOnTransferTokens(
             token_amount_wei,
             min_bnb,
             path,
