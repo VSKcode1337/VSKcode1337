@@ -1840,7 +1840,7 @@ async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, c
         # Setup deadline (10 minutes from now)
         deadline = int(time.time()) + 600
         
-        # Build transaction
+        # Build transaction with REASONABLE gas costs
         transaction = router_contract.functions.swapExactETHForTokens(
             min_tokens,
             path,
@@ -1849,8 +1849,8 @@ async def execute_real_pancakeswap_buy(w3, account, token_address, bnb_amount, c
         ).build_transaction({
             'from': account.address,
             'value': bnb_amount_wei,
-            'gas': config.get('gas_limit', 300000),
-            'gasPrice': w3.to_wei(config.get('gas_price_gwei', 5), 'gwei'),
+            'gas': 200000,  # Reasonable gas limit
+            'gasPrice': w3.to_wei(5, 'gwei'),  # Reasonable 5 Gwei
             'nonce': w3.eth.get_transaction_count(account.address),
             'chainId': 56  # BSC Mainnet
         })
